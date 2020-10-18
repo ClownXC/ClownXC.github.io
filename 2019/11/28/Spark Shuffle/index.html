@@ -1,0 +1,332 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spark Shuffle 机制 | 周晓晨</title><meta name="keywords" content="大数据,Spark"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="shuffle 的性能高低直接影响了整个程序的性能和吞吐量。因为在分布式情况下，reduce task 需要跨节点去拉取其它节点上的 map task 结果。这一过程将会产生网络资源消耗和内存，磁盘 IO 的消耗。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark Shuffle 机制">
+<meta property="og:url" content="http://example.com/2019/11/28/Spark%20Shuffle/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="shuffle 的性能高低直接影响了整个程序的性能和吞吐量。因为在分布式情况下，reduce task 需要跨节点去拉取其它节点上的 map task 结果。这一过程将会产生网络资源消耗和内存，磁盘 IO 的消耗。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-11-28T12:06:39.000Z">
+<meta property="article:modified_time" content="2020-04-30T07:17:22.000Z">
+<meta property="article:author" content="周晓晨">
+<meta property="article:tag" content="大数据">
+<meta property="article:tag" content="Spark">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2019/11/28/Spark%20Shuffle/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表了","messageNext":"天了，其中某些内容可能已经过时。"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-04-30 15:17:22'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">44</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">8</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">9</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%87%B4-Shuffle-%E6%93%8D%E4%BD%9C%E7%AE%97%E5%AD%90"><span class="toc-number">2.</span> <span class="toc-text">导致 Shuffle 操作算子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E5%88%86%E5%8C%BA%E7%B1%BB%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="toc-number">2.1.</span> <span class="toc-text">重分区类的操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#byKey-%E7%B1%BB%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="toc-number">2.2.</span> <span class="toc-text">byKey 类的操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Join-%E7%B1%BB%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="toc-number">2.3.</span> <span class="toc-text">Join 类的操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Shuffle-%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">Shuffle 原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#HashShuffle"><span class="toc-number">3.1.</span> <span class="toc-text">HashShuffle</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#shuffle-write"><span class="toc-number">3.1.1.</span> <span class="toc-text">shuffle write</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#shuffle-read"><span class="toc-number">3.1.2.</span> <span class="toc-text">shuffle read</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E4%B9%8B%E5%90%8E%E7%9A%84-HashShuffle"><span class="toc-number">3.2.</span> <span class="toc-text">优化之后的 HashShuffle</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SortShuffle"><span class="toc-number">4.</span> <span class="toc-text">SortShuffle</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%99%AE%E9%80%9A-SortShuffle"><span class="toc-number">4.1.</span> <span class="toc-text">普通 SortShuffle</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bypassSortShuffle"><span class="toc-number">4.2.</span> <span class="toc-text">bypassSortShuffle</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spark-Shuffle-vs-MR-Shuffle"><span class="toc-number">5.</span> <span class="toc-text">Spark Shuffle vs MR Shuffle</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Shuffle-%E7%AE%A1%E7%90%86%E5%99%A8"><span class="toc-number">5.1.</span> <span class="toc-text">Shuffle 管理器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Shuffle-%E8%BF%87%E7%A8%8B%E6%8E%92%E5%BA%8F%E6%AC%A1%E6%95%B0"><span class="toc-number">5.2.</span> <span class="toc-text">Shuffle 过程排序次数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Shuffle-%E9%80%BB%E8%BE%91%E6%B5%81%E5%88%92%E5%88%86"><span class="toc-number">5.3.</span> <span class="toc-text">Shuffle 逻辑流划分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8D%E5%90%8C"><span class="toc-number">5.4.</span> <span class="toc-text">数据结构不同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Shuffle-Fetch-%E5%90%8E%E6%95%B0%E6%8D%AE%E5%AD%98%E6%94%BE%E4%BD%8D%E7%BD%AE"><span class="toc-number">5.5.</span> <span class="toc-text">Shuffle Fetch 后数据存放位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Fetch-%E6%93%8D%E4%BD%9C%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%AE%A1%E7%AE%97%E7%B2%92%E5%BA%A6"><span class="toc-number">5.6.</span> <span class="toc-text">Fetch 操作与数据计算粒度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spark-Shuffle-%E8%B0%83%E4%BC%98"><span class="toc-number">6.</span> <span class="toc-text">Spark Shuffle 调优</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#shuffle-%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0%E8%B0%83%E4%BC%98"><span class="toc-number">6.1.</span> <span class="toc-text">shuffle 相关参数调优</span></a></li></ol></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">Spark Shuffle 机制</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-11-28T12:06:39.000Z" title="发表于 2019-11-28 20:06:39">2019-11-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-04-30T07:17:22.000Z" title="更新于 2020-04-30 15:17:22">2020-04-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Spark/">Spark</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>shuffle 的性能高低直接影响了整个程序的性能和吞吐量。因为在分布式情况下，reduce task 需要跨节点去拉取其它节点上的 map task 结果。这一过程将会产生网络资源消耗和内存，磁盘 IO 的消耗。</p>
+<a id="more"></a>
+
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a><strong>概述</strong></h2><p>Shuffle 描述着数据从 map task 输出到 reduce task 输入的这段过程。</p>
+<p>Shuffle 是连接 Map 和 Reduce 之间的桥梁， Map 的输出要用到 Reduce 中必须经过 shuffle 这个环节.</p>
+<p>shuffle 的性能高低直接影响了整个程序的性能和吞吐量。因为在分布式情况下，reduce task 需要跨节点去拉取其它节点上的 map task 结果。这一过程将会产生网络资源消耗和内存，磁盘 IO 的消耗。</p>
+<p>通常 shuffle 分为两部分：Map阶段的数据准备和  Reduce 阶段的数据拷贝处理。</p>
+<p>一般将在 map 端的 shuffle 称之为 Shuffle Write， 在Reduce 端的 Shuffle 称之为 Shuffle Read</p>
+<h2 id="导致-Shuffle-操作算子"><a href="#导致-Shuffle-操作算子" class="headerlink" title="导致 Shuffle 操作算子"></a><strong>导致 Shuffle 操作算子</strong></h2><h3 id="重分区类的操作"><a href="#重分区类的操作" class="headerlink" title="重分区类的操作"></a><strong>重分区类的操作</strong></h3><p>重分区类算子一般会 shuffle，因为需要在整个集群中，对之前所有的分区的数据进行随机，均匀的打乱，然后把数据放入下游新的指定数量的分区内。</p>
+<p>比如 repartition、repartitionAndSortWithinPartitions等</p>
+<h3 id="byKey-类的操作"><a href="#byKey-类的操作" class="headerlink" title="byKey 类的操作"></a><strong>byKey 类的操作</strong></h3><p>比如 reduceByKey、groupByKey、sortByKey 等，对一个 key 进行聚合操作时要保证集群中，所有节点上相同的 key 分配到同一个节点上进行处理</p>
+<h3 id="Join-类的操作"><a href="#Join-类的操作" class="headerlink" title="Join 类的操作"></a><strong>Join 类的操作</strong></h3><p>比如 join、cogroup 等。两个 rdd 进行 join，就必须将相同 key 的数据，shuffle 到同一个节点上，然后进行相同 key 的两个 rdd 数据操作。</p>
+<h2 id="Shuffle-原理"><a href="#Shuffle-原理" class="headerlink" title="Shuffle 原理"></a><strong>Shuffle 原理</strong></h2><p><strong>ShuffleMapStage 的结束伴随着 shuffle 文件的写磁盘</strong></p>
+<p><strong>ResultStage基本上对应代码中的 action 算子， 即将一个函数应用在 RDD 的各个 partition 的数据集上，意味着一个 job 的运行结束</strong></p>
+<p>在划分 stage 时， 最后一个 stage 称为 finalStage， 它本质上是一个 ResultStage</p>
+<h3 id="HashShuffle"><a href="#HashShuffle" class="headerlink" title="HashShuffle"></a><strong>HashShuffle</strong></h3><p>通常 shuffle 分为两部分：write 阶段的数据准备和 read 阶段的数据拷贝处理。</p>
+<h4 id="shuffle-write"><a href="#shuffle-write" class="headerlink" title="shuffle write"></a>shuffle write</h4><blockquote>
+<p>shuffle write 阶段，ShuffleMapStage 结束后，每一个 task 中的数据按照 key 进行分类，根据 <strong>hash 算法</strong>，<strong>将相同的 key 写入到一个磁盘文件中，而每一个磁盘文件都只属于下游 stage 的一个 task。在将数据写入磁盘之前，会先将数据写入到内存缓冲，当内存缓冲填满之后，溢写到磁盘文件中。</strong></p>
+</blockquote>
+<h4 id="shuffle-read"><a href="#shuffle-read" class="headerlink" title="shuffle read"></a>shuffle read</h4><blockquote>
+<p>shuffle read，通常就是一个 stage 刚开始时要做的事情。此时该 stage 的每一个 task 需要将上一个 stage 的计算结果中的所有相同 key，从各个节点上通过网络都拉取到自己所在的节点上，然后进行 key 的聚合或连接等操作。由于 shuffle write 的过程中，task 给下游 stage 的每个 task 都创建了一个磁盘文件，因此 shuffle read 的过程中，每个 task 只要从上游 stage 的所有 task 所在节点上，拉取属于自己的那一个磁盘文件即可.</p>
+</blockquote>
+<blockquote>
+<p>shuffle read 的拉取过程是一边拉取一边进行聚合的。每个 shuffle read task 都会有一个自己的buffer 缓冲，每次都只能拉取与 buffer 缓冲相同大小的数据，然后通过内存中的一个 Map 进行聚合等操作。聚合完一批数据后，再拉取下一批数据，并放到 buffer 缓冲中进行聚合操作。以此类推，直到最后将所有数据到拉取完，并得到最终的结果。</p>
+</blockquote>
+<p>这种策略的不足在于，<strong>下游有几个 task，上游的每一个 task 都就都需要创建几个临时文件</strong>，每个文件中只存储 key 取 hash 之后相同的数据，导致了当下游的 task 任务过多的时候，上游会堆积大量的小文件.</p>
+<p><img src="../images/spark/2.png" alt="屏幕快照 2020-02-21 下午8.24.28"></p>
+<ol>
+<li>Shuffle 前在磁盘上会产生海量的小文件，此时会产生大量耗时低效的 IO 操作</li>
+<li>内存不够用，由于内存中需要保存海量文件操作信息和临时信息，如果数据处理的规模比较庞大的话，内存不可承受，会出现 OOM 等问题。</li>
+</ol>
+<h3 id="优化之后的-HashShuffle"><a href="#优化之后的-HashShuffle" class="headerlink" title="优化之后的 HashShuffle"></a>优化之后的 HashShuffle</h3><p>这里说的优化，是指我们可以设置一个参数，spark.shuffle.consolidateFiles。该参数默认值为false，将其设置为 true 即可开启优化机制。通常来说，如果我们使用HashShuffleManager，那么都建议开启这个选项。</p>
+<p>开启这个机制之后，在 shuffle write 过程中，task 就不是为下游 stage 的每个 task 创建一个磁盘文件。出现 shuffleFileGroup 的概念。一个 Executor 上有多少个 CPU core ，就可以并行执行多少个 task。第一批并行执行的每个 task 都会创建一个 shuffleFileGroup，并将数据写入对应的磁盘文件内。<strong>当 Executor 的 CPU core 接着执行下一批 task 时，下一批 task 就会复用之前已有的 shuffleFileGroup ，包括其中的磁盘文件。</strong>而不会写入新的磁盘文件中。</p>
+<p>consolidate 机制允许不同的 task 复用同一批磁盘文件，这样就可以有效将多个 task 的磁盘文件进行一定程度上的合并，从而大幅度减少磁盘文件的数量，进而提升 shuffle write 的性能。</p>
+<img src="../images/spark/3.png" alt="" style="zoom:50%;" />
+
+<h2 id="SortShuffle"><a href="#SortShuffle" class="headerlink" title="SortShuffle"></a><strong>SortShuffle</strong></h2><p>SortShuffleManager 的运行机制主要分成两种，一种是普通运行机制，另一种是 bypass 运 行 机 制 。 当 shuffle read task 的 数量小于等于 spark.shuffle.sort.bypassMergeThreshold 参数的值时[默认为 200 ]， 就会启用 bypass 机制。</p>
+<h3 id="普通-SortShuffle"><a href="#普通-SortShuffle" class="headerlink" title="普通 SortShuffle"></a><strong>普通 SortShuffle</strong></h3><p>Task 将数据会先写入一个内存数据结构。</p>
+<p><font color='blue'>[根据不同的 shuffle 算子，可能选用不同的数据结构。如果是 reduceByKey 这种聚合类的 shuffle 算子，那么会选用 Map 数据结构，一边通过 Map 进行聚合，一边写入内存；如果是 join 这种普通的 shuffle 算子，那么会选用 Array 数据结构，直接写入内存。]</font></p>
+<p>每写一条数据进入内存数据结构之后，就会判断是否达到了某个临界值,<strong>如果达到了临界值的话，就会尝试的将内存数据结构中的数据溢写到磁盘</strong>,然后清空内存数据结构。</p>
+<p>注：此时的临界值为动态变化的，并非固定值</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">maybeSpill</span></span>(collection: <span class="type">C</span>, currentMemory: <span class="type">Long</span>): <span class="type">Boolean</span> = &#123;</span><br><span class="line">  <span class="keyword">var</span> shouldSpill = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (elementsRead % <span class="number">32</span> == <span class="number">0</span> &amp;&amp; currentMemory &gt;= myMemoryThreshold) &#123;</span><br><span class="line">    <span class="comment">// Claim up to double our current memory from the shuffle memory pool</span></span><br><span class="line">    <span class="keyword">val</span> amountToRequest = <span class="number">2</span> * currentMemory - myMemoryThreshold</span><br><span class="line">    <span class="keyword">val</span> granted = acquireMemory(amountToRequest)</span><br><span class="line">    myMemoryThreshold += granted</span><br><span class="line">    <span class="comment">// If we were granted too little memory to grow further (either tryToAcquire returned 0,</span></span><br><span class="line">    <span class="comment">// or we already had more memory than myMemoryThreshold), spill the current collection</span></span><br><span class="line">    shouldSpill = currentMemory &gt;= myMemoryThreshold</span><br><span class="line">  &#125;</span><br><span class="line">  shouldSpill = shouldSpill || _elementsRead &gt; numElementsForceSpillThreshold</span><br><span class="line">  <span class="comment">// Actually spill</span></span><br><span class="line">  <span class="keyword">if</span> (shouldSpill) &#123;</span><br><span class="line">    _spillCount += <span class="number">1</span></span><br><span class="line">    logSpillage(currentMemory)</span><br><span class="line">    spill(collection)</span><br><span class="line">    _elementsRead = <span class="number">0</span></span><br><span class="line">    _memoryBytesSpilled += currentMemory</span><br><span class="line">    releaseMemory()</span><br><span class="line">  &#125;</span><br><span class="line">  shouldSpill</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>在溢写到磁盘文件之前，会先根据 key 对内存数据结构中已有的数据进行排序</strong>，排序之后，会分批将数据写入磁盘文件。</p>
+<p><font color='grey'>默认的 batch 数量是 10000 条，也就是说，排序好的数据，会以每批次 1 万条数据的形式分批写入磁盘文件，写入磁盘文件是通过Java 的 BufferedOutputStream 实现的。BufferedOutputStream 是 Java 的缓冲输出流，首先会将数据缓冲在内存中，当内存缓冲满溢之后再一次写入磁盘文件中，这样可以减少磁盘IO次数，提升性能。</font></p>
+<p>一个 Task 将所有数据写入内存数据结构的过程中，会发生多次磁盘溢写，产生多个临时文件，最后会将之前所有的临时文件都进行合并，最后会合并成为一个大文件。<strong>最终只剩下两个文件，一个是合并之后的数据文件，一个是索引文件</strong>,索引文件标识了下游各个 Task 的数据在文件中的 start offset 与 end offset。最终再由下游的 task 根据索引文件读取相应的数据文件。</p>
+<img src="../images/spark/5.png" alt="" style="zoom:50%;" />
+
+<p><font color = 'blue'> <strong>SortShuffleManager 由于有一个磁盘文件 merge 的过程，因此大大减少了文件数量。 比如第一个 stage 有 50 个 task ， 总共有 10 个 Executor ， 每个 Executor 执行 5个 task ，而第二个 stage 有 100 个 task 。由于每个 task 最终只有一个磁盘 文件，因此 此时每个 Executor 上只有 5 个磁盘文件， 所有 Executor 只有 50 个磁盘文件。</strong></font></p>
+<h3 id="bypassSortShuffle"><a href="#bypassSortShuffle" class="headerlink" title="bypassSortShuffle"></a>bypassSortShuffle</h3><p>此时 Task 会为每个下游 Task 都创建一个临时磁盘文件，并将数据按 key 进行 hash 然后根据 key 的hash 值，将 key 写入对应的磁盘文件之中。当然，写入磁盘文件时也是先写入内存缓冲，缓冲写满之后再溢写到磁盘文件的。最后，同样会将所有临时磁盘文件都合并成一个磁盘文件，并创建一个单独的索引文件。</p>
+<p>该过程的磁盘写机制其实跟未经优化的 HashShuffleManager 是一模一样的,因为都要创建数量惊人的磁盘文件， 只是在最后会做一个磁盘文件的合并而已,因此产生少量的最终磁盘文件,也让该机制相对未经优化的 HashShuffleManager 来说，shuffle read 的性能会更好。</p>
+<p>而该机制与普通 SortShuffleManager 运行机制的不同在于</p>
+<ol>
+<li>磁盘写机制不同 </li>
+<li>不会进行排序 </li>
+</ol>
+<p>也就是说,启用该机制的最大好处在于,shuffle write 过程中,不需要进行数据的排序操作,也就节省掉了这部分的性能开销。</p>
+<p><strong>触发条件</strong></p>
+<ol>
+<li><p>shuffle map task 的数量小于 spark.shuffle.sort.bypassMergeThreshold 参数的值[默认200]</p>
+</li>
+<li><p>不是聚合类的shuffle 算子[比如groupByKey]</p>
+</li>
+</ol>
+<h2 id="Spark-Shuffle-vs-MR-Shuffle"><a href="#Spark-Shuffle-vs-MR-Shuffle" class="headerlink" title="Spark Shuffle vs MR Shuffle"></a>Spark Shuffle vs MR Shuffle</h2><h3 id="Shuffle-管理器"><a href="#Shuffle-管理器" class="headerlink" title="Shuffle 管理器"></a>Shuffle 管理器</h3><p>Hadoop 2.7.x Shuffle 过程是 sort-based 过程，在 shuffle 过程中会发生排序行为</p>
+<p>Spark 2.2.x Spark ShuffleManager 分为HashShuffleManager和 SortShuffleManager。Spark 1.2 后 默认为SortShuffleManager，在普通模式下，shuffle 过程中会发生排序行为；Spark 可以根据业务场景需要进行ShuffleManager 选择Hash Shuffle Manager / Sort ShuffleManager[普通模式和bypass模式]。</p>
+<h3 id="Shuffle-过程排序次数"><a href="#Shuffle-过程排序次数" class="headerlink" title="Shuffle 过程排序次数"></a>Shuffle 过程排序次数</h3><ul>
+<li>Hadoop Shuffle 过程总共会发生 3 次排序行为，详细分别如下：<ul>
+<li>第一次排序行为：在 map 阶段，由环形缓冲区溢出到磁盘上时，落地磁盘的文件会按照 key 进行分区和排序，属于分区内有序，排序算法为快速排序</li>
+<li>第二次排序行为：在 map 阶段，对溢出的文件进行 combiner合并过程中，需要对溢出的小文件进行归并排序、合并，排序算法为归并排序；</li>
+<li>第三次排序行为：在 reduce 阶段，reduce task 将不同 maptask 端文件拉去到同一个reduce 分区后，对文件进行合并，归并排序，排序算法为归并排序；</li>
+</ul>
+</li>
+<li>Spark Shuffle 过程在满足Shuffle Manager 为 SortShuffleManager ，且运行模式为普通模式的情况下才会发生排序行为，排序行为发生在数据结构中保存数据内存达到阈值，在溢出磁盘文件之前会对内存数据结构中数据进行排序；<ul>
+<li>Spark 中 Sorted-Based Shuffle 在 Mapper 端是进行排序的，包括 partition 的排序和每个partition 内部元素进行排序。但是在 Reducer 端没有进行排序，所以 job 的结果默认情况下不是排序的。</li>
+<li>Sorted-Based Shuffle  采用 Tim-Sort 排序算法，好处是可以极为高效的使用 Mapper 端的排序成果完成全局排序。</li>
+</ul>
+</li>
+</ul>
+<h3 id="Shuffle-逻辑流划分"><a href="#Shuffle-逻辑流划分" class="headerlink" title="Shuffle 逻辑流划分"></a>Shuffle 逻辑流划分</h3><ul>
+<li><p>Hadoop Shuffle 过程可以划分为：map()，spill，merge，shuffle，sort，reduce()等，是按照流程顺次执行的，属于Push类型；</p>
+</li>
+<li><p>Spark Shuffle过程是由算子进行驱动，由于Spark的算子懒加载特性，属于Pull类型，整个Shuffle过程可以划分为Shuffle Write 和Shuffle Read两个阶段；</p>
+</li>
+</ul>
+<h3 id="数据结构不同"><a href="#数据结构不同" class="headerlink" title="数据结构不同"></a>数据结构不同</h3><ul>
+<li>Hadoop 是基于文件的数据结构</li>
+<li>Spark是基于RDD的数据结构，计算性能要比 Hadoop 要高</li>
+</ul>
+<h3 id="Shuffle-Fetch-后数据存放位置"><a href="#Shuffle-Fetch-后数据存放位置" class="headerlink" title="Shuffle Fetch 后数据存放位置"></a>Shuffle Fetch 后数据存放位置</h3><ul>
+<li>Hadoop reduce 端将 map task 的文件拉去到同一个 reduce 分区，是将文件进行归并排序、合并，将文件直接保存在磁盘上</li>
+<li>Spark Shuffle Read 拉取来的数据首先肯定是放在 Reducer 端的内存缓存区中的，实现是内存+磁盘的方式，当然也可以通过 Spark.shuffle.spill=false 来设置只能使用内存。使用 ExternalAppendOnlyMap的方式时候如果内存使用达到一定临界值，会首先尝试在内存中扩大 ExternalAppendOnlyMap，如果不能扩容的话才会spill到磁盘。</li>
+</ul>
+<h3 id="Fetch-操作与数据计算粒度"><a href="#Fetch-操作与数据计算粒度" class="headerlink" title="Fetch 操作与数据计算粒度"></a>Fetch 操作与数据计算粒度</h3><ul>
+<li>Hadoop 的 MapReduce 是粗粒度的，Hadoop Shuffle Reducer Fetch到的数据 record先暂时被存放到Buffer 中，当 Buffer 快满时才进行 combine() 操作</li>
+<li>Spark 的 Shuffle Fetch 是细粒度的，Reducer 是对 Map 端数据 Record 边拉去边聚合</li>
+</ul>
+<h2 id="Spark-Shuffle-调优"><a href="#Spark-Shuffle-调优" class="headerlink" title="Spark Shuffle 调优"></a>Spark Shuffle 调优</h2><p>大多数 Spark 作业的性能主要就是消耗在了 shuffle 环节，因为该环节包含了大量的磁盘IO、序列化、网络数据传输等操作。因此，如果要让作业的性能更上一层楼，就有必要对 shuffle 过程进行调优。</p>
+<h3 id="shuffle-相关参数调优"><a href="#shuffle-相关参数调优" class="headerlink" title="shuffle 相关参数调优"></a>shuffle 相关参数调优</h3><ol>
+<li><p><strong>spark.shuffle.file.buffer</strong></p>
+<p>默认值：32k</p>
+<p>参数说明：该参数用于设置 shuffle write task 的 BufferedOutputStream 的 buffer 缓冲大小。将数据写到磁盘文件之前，会先写入 buffer 缓冲中，待缓冲写满之后，才会溢写到磁盘。<br>调优建议：如果作业可用的内存资源较为充足的话，可以适当增加这个参数的大小（比如64k），从而减少shuffle write过程中溢写磁盘文件的次数，也就可以减少磁盘IO次数，进而提升性能。在实践中发现，合理调节该参数，性能会有1%~5%的提升。</p>
+</li>
+<li><p><strong>spark.reducer.maxSizeInFlight</strong></p>
+<p>默认值：48m<br>参数说明：该参数用于设置shuffle read task的buffer缓冲大小，而这个buffer缓冲决定了每次能够拉取多少数据。<br>调优建议：如果作业可用的内存资源较为充足的话，可以适当增加这个参数的大小（比如96m），从而减少拉取数据的次数，也就可以减少网络传输的次数，进而提升性能。在实践中发现，合理调节该参数，性能会有1%~5%的提升。</p>
+</li>
+<li><p><strong>spark.shuffle.io.maxRetries</strong></p>
+<p>默认值：3<br>参数说明：shuffle read task 从 shuffle write task 所在节点拉取属于自己的数据时，如果因为网络异常导致拉取失败，是会自动进行重试的。该参数就代表了可以重试的最大次数。如果在指定次数之内拉取还是没有成功，就可能会导致作业执行失败。<br>调优建议：对于那些包含了特别耗时的 shuffle 操作的作业，建议增加重试最大次数（比如60次），以避免由于 JVM 的 full gc 或者网络不稳定等因素导致的数据拉取失败。在实践中发现，对于针对超大数据量（数十亿~上百亿）的 shuffle 过程，调节该参数可以大幅度提升稳定性。</p>
+</li>
+<li><p><strong>spark.shuffle.io.retryWait</strong></p>
+<p>默认值：5s<br>参数说明：该参数代表了每次重试拉取数据的等待间隔，默认是 5s。<br>调优建议：建议加大间隔时长（比如60s），以增加 shuffle 操作的稳定性。</p>
+</li>
+</ol>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2019/11/28/Spark%20Shuffle/">http://example.com/2019/11/28/Spark%20Shuffle/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a><a class="post-meta__tags" href="/tags/Spark/">Spark</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/12/02/Spark%20%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Spark 任务调度机制</div></div></a></div><div class="next-post pull-right"><a href="/2019/11/23/Spark%20%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Spark 数据倾斜</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2019/12/02/Spark 任务调度机制/" title="Spark 任务调度机制"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-12-02</div><div class="title">Spark 任务调度机制</div></div></a></div><div><a href="/2019/11/19/Spark 优化/" title="Spark 调优"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-11-19</div><div class="title">Spark 调优</div></div></a></div><div><a href="/2019/11/23/Spark 数据倾斜/" title="Spark 数据倾斜"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-11-23</div><div class="title">Spark 数据倾斜</div></div></a></div><div><a href="/2019/10/10/Spark架构/" title="Spark 架构设计"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-10-10</div><div class="title">Spark 架构设计</div></div></a></div><div><a href="/2019/11/22/Spark 容错机制/" title="Spark 存储模块"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-11-22</div><div class="title">Spark 存储模块</div></div></a></div><div><a href="/2019/11/22/Spark 共享变量/" title="Spark 存储模块"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-11-22</div><div class="title">Spark 存储模块</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2020 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      placeholder: 'Please leave your footprints',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

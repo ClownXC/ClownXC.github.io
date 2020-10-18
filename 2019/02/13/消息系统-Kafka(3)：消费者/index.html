@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>消息系统-Kafka(3)：消费者 | 周晓晨</title><meta name="keywords" content="Kafka"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="1.消费者和消费者组1.1. 概述Kafka 消费者从属于消费者组。一个消费者组里的消费者订阅的为同一主题。每个消费者接受主题一部分分区的消息。 向消费者组里增加消费者是横向伸缩消费能力的主要方式。Kafka 消费者在做一些高延迟的操作，如向HDFS或数据库中写入数据，或者使用数据进行一些耗时的计算操作。在这些情况下，单个消费者无法跟上数据的生成速度，此时我们可以增加消费者，以分担负载，每个消费者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="消息系统-Kafka(3)：消费者">
+<meta property="og:url" content="http://example.com/2019/02/13/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(3)%EF%BC%9A%E6%B6%88%E8%B4%B9%E8%80%85/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="1.消费者和消费者组1.1. 概述Kafka 消费者从属于消费者组。一个消费者组里的消费者订阅的为同一主题。每个消费者接受主题一部分分区的消息。 向消费者组里增加消费者是横向伸缩消费能力的主要方式。Kafka 消费者在做一些高延迟的操作，如向HDFS或数据库中写入数据，或者使用数据进行一些耗时的计算操作。在这些情况下，单个消费者无法跟上数据的生成速度，此时我们可以增加消费者，以分担负载，每个消费者">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-02-13T09:56:22.000Z">
+<meta property="article:modified_time" content="2020-04-04T05:50:00.000Z">
+<meta property="article:author" content="周晓晨">
+<meta property="article:tag" content="Kafka">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2019/02/13/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(3)%EF%BC%9A%E6%B6%88%E8%B4%B9%E8%80%85/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表了","messageNext":"天了，其中某些内容可能已经过时。"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-04-04 13:50:00'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">44</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">8</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">9</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%B6%88%E8%B4%B9%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85%E7%BB%84"><span class="toc-number">1.</span> <span class="toc-text">1.消费者和消费者组</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E6%A6%82%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">1.1. 概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E6%B6%88%E8%B4%B9%E6%96%B9%E5%BC%8F"><span class="toc-number">1.2.</span> <span class="toc-text">1.2. 消费方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-%E7%89%B9%E5%AE%9A%E5%81%8F%E7%A7%BB%E5%A4%84%E6%B6%88%E8%B4%B9%E6%95%B0%E6%8D%AE"><span class="toc-number">1.3.</span> <span class="toc-text">1.3. 特定偏移处消费数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-%E7%8B%AC%E7%AB%8B%E6%B6%88%E8%B4%B9%E8%80%85"><span class="toc-number">1.4.</span> <span class="toc-text">1.4. 独立消费者</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%B6%88%E8%B4%B9%E8%80%85"><span class="toc-number">1.5.</span> <span class="toc-text">1.5. 多线程消费者</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-6-%E9%80%80%E5%87%BA"><span class="toc-number">1.6.</span> <span class="toc-text">1.6. 退出</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%88%86%E5%8C%BA%E5%88%86%E9%85%8D"><span class="toc-number">2.</span> <span class="toc-text">2. 分区分配</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-%E5%86%8D%E5%9D%87%E8%A1%A1"><span class="toc-number">2.1.</span> <span class="toc-text">3.1. 再均衡</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-1-%E6%A6%82%E8%BF%B0"><span class="toc-number">2.1.1.</span> <span class="toc-text">3.1.1. 概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-2-%E6%9D%A1%E4%BB%B6"><span class="toc-number">2.1.2.</span> <span class="toc-text">3.1.2. 条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-3-%E5%86%8D%E5%9D%87%E8%A1%A1%E7%9B%91%E5%90%AC%E5%99%A8"><span class="toc-number">2.1.3.</span> <span class="toc-text">3.1.3.  再均衡监听器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E5%88%86%E5%8C%BA%E5%88%86%E9%85%8D"><span class="toc-number">2.2.</span> <span class="toc-text">3.2. 分区分配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">2.2.1.</span> <span class="toc-text">概述</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%8F%90%E4%BA%A4%E5%92%8C%E5%81%8F%E7%A7%BB%E9%87%8F-Offset"><span class="toc-number">2.3.</span> <span class="toc-text">4. 提交和偏移量 Offset</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Offset-%E7%9A%84%E7%BB%B4%E6%8A%A4"><span class="toc-number">2.3.0.1.</span> <span class="toc-text">Offset 的维护</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-%E8%87%AA%E5%8A%A8%E6%8F%90%E4%BA%A4%E5%81%8F%E7%A7%BB%E9%87%8F"><span class="toc-number">2.3.0.2.</span> <span class="toc-text">2.2. 自动提交偏移量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-%E6%89%8B%E5%8A%A8%E6%8F%90%E4%BA%A4%E5%81%8F%E7%A7%BB%E9%87%8F"><span class="toc-number">2.3.0.3.</span> <span class="toc-text">2.3. 手动提交偏移量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%80%BB%E7%BB%93"><span class="toc-number">2.4.</span> <span class="toc-text">5.总结</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Kafka-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E6%9C%89%E5%BA%8F"><span class="toc-number">2.4.0.1.</span> <span class="toc-text">Kafka 如何保证消息有序 ?</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Kafka-%E7%BC%BA%E7%82%B9-%EF%BC%9F"><span class="toc-number">2.4.0.1.1.</span> <span class="toc-text">Kafka 缺点 ？</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">消息系统-Kafka(3)：消费者</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-02-13T09:56:22.000Z" title="发表于 2019-02-13 17:56:22">2019-02-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-04-04T05:50:00.000Z" title="更新于 2020-04-04 13:50:00">2020-04-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Kafka/">Kafka</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="1-消费者和消费者组"><a href="#1-消费者和消费者组" class="headerlink" title="1.消费者和消费者组"></a>1.消费者和消费者组</h1><h2 id="1-1-概述"><a href="#1-1-概述" class="headerlink" title="1.1. 概述"></a>1.1. 概述</h2><p>Kafka 消费者从属于消费者组。一个消费者组里的消费者订阅的为同一主题。每个消费者接受主题一部分分区的消息。</p>
+<p><strong>向消费者组里增加消费者是横向伸缩消费能力的主要方式</strong>。Kafka 消费者在做一些高延迟的操作，如向HDFS或数据库中写入数据，或者使用数据进行一些耗时的计算操作。在这些情况下，单个消费者无法跟上数据的生成速度，此时我们可以增加消费者，以分担负载，每个消费者只处理部分分区上的消息，这就是横向伸缩的主要手段。我们有必要为主题创建大量分区，负载增长时可以增加更多的消费者</p>
+<p><font color = 'red'><strong>注意：</strong> 一个主题的同一个分区同时只能供同一个消费者组里的一个消费者消费数据，因此不要让消费者的数量超过主题分区的数量，多于的消费者只会被闲置。</font></p>
+<h2 id="1-2-消费方式"><a href="#1-2-消费方式" class="headerlink" title="1.2. 消费方式"></a>1.2. 消费方式</h2><p>由于 Push 模式 很难适应消费速率不同的消费者，因此消息发送速率是由 broker 决定的。它的目标是尽可能的以最快的速度传递消息，但是这样容易造成 consumer 来不及处理消息，典型的表现就是拒绝服务以及网络拥塞。 所以 kafka 采用 pull 模式，根据消费者的能力以适当的速率消费消息。==</p>
+<p><strong>Pull 模式的不足之处是如果 kafka 中没有数据，消费者可能会陷入循环中，一直返回空数据，针对这一点，Kafka 的消费者在消费数据时会传入一个时长参数 timeout，如果当前没有数据可供消费，consumer 会等待一段时间在返回，这段时长即为 timeout。</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ConsumerRecords&lt;K, V&gt; <span class="title">poll</span><span class="params">(<span class="keyword">final</span> Duration timeout)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> poll(timeout.toMillis(), <span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-3-特定偏移处消费数据"><a href="#1-3-特定偏移处消费数据" class="headerlink" title="1.3. 特定偏移处消费数据"></a>1.3. 特定偏移处消费数据</h2><p>使用 poll() 开始消费每个分区中最后一个已经发生的偏移量的消息，并继续按顺序处理所有消息。但是，有时我们肯想要以不同的偏移量开始阅读。如果你想从分区的开头读取所有消息，或者你想要一直跳到分区的末尾并开始只消费新消息，那么可以使用有一些专门的API：seekToBeginning(TopicPartition tp)和seekToEnd(TopicPartition tp)。</p>
+<h2 id="1-4-独立消费者"><a href="#1-4-独立消费者" class="headerlink" title="1.4. 独立消费者"></a>1.4. 独立消费者</h2><p>单一的消费者总是需要从主题中的所有分区读取数据，或者从一个主题特定分区读取数据。在这种情况下没有理由需要组或负载均衡，只是订阅特定的主题或分区，偶尔使用消息和提交偏移量。</p>
+<h2 id="1-5-多线程消费者"><a href="#1-5-多线程消费者" class="headerlink" title="1.5. 多线程消费者"></a>1.5. 多线程消费者</h2><p>KafkaProducer是线程安全的，而 KafkaConsumer 是非线程安全的，多线程需要处理好线程同步，多线程的实现方式有多种，这里介绍一种：<strong>每个线程各自实例化一个KakfaConsumer对象</strong>，这种方式的缺点是：当这些线程属于同一个消费组时，线程的数量受限于分区数，当消费者线程的数量大于分区数时，就有一部分消费线程一直处于空闲状态</p>
+<h2 id="1-6-退出"><a href="#1-6-退出" class="headerlink" title="1.6. 退出"></a>1.6. 退出</h2><p>如果确定要退出循环，需要通过另一个线程调用 consumer.wakeup() 方法。</p>
+<p>如果循环运行在主线程里，可以在 ShutdownHook 里调用该方法。consumer.wakeup() 是消费者唯一一个可以从其他线程里安全调用的方法。</p>
+<p>ShutdownHook运行在单独的线程里，所以退出循环最安全的方式只能是调用 consumer.wakeup()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Runtime.getRuntime().addShutdownHook(<span class="keyword">new</span> Thread() &#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Starting exit...&quot;</span>);</span><br><span class="line">    consumer.wakeup();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      mainThread.join();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">      e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>调用 consumer.wakeup() 可以退出 poll() ，并抛出 WakeupException异常，或者如果调用consumer.wakeup() 时线程没有等待轮询，那么异常将在下一轮调用 poll() 时抛出。不需要处理WakeupException,因为它只是用于跳出循环的一种方式。不过，在退出线程之前调用 consumer.close()是很有必要的，它会提交任何还没有提交的东西，并向群组协调器发送消息，告知自己要离开群组，接下来就会触发再均衡，而不需要等待会话超时。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">    ConsumerRecords records = movingAvg.consumer.poll(<span class="number">1000</span>);</span><br><span class="line">    System.out.println(System.currentTimeMillis() + <span class="string">&quot; -- waiting for data...&quot;</span>);</span><br><span class="line">    <span class="keyword">for</span>(ConsumerRecord record : records) &#123;</span><br><span class="line">      System.out.printf(<span class="string">&quot;offset = %d, key = %s, value = %s\n&quot;</span>,</span><br><span class="line">                        record.offset(), record.key(), record.value());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(TopicPartition tp: consumer.assignment())&#123;</span><br><span class="line">    	System.out.println(<span class="string">&quot;Committing offset at position:&quot;</span> + consumer.position(tp));</span><br><span class="line">    &#125;</span><br><span class="line">    movingAvg.consumer.commitSync();</span><br><span class="line">  &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span>(WakeupException e) &#123;</span><br><span class="line">    <span class="comment">// ignore for shutdown</span></span><br><span class="line">&#125; <span class="keyword">finally</span>&#123;</span><br><span class="line">  	<span class="comment">//在退出之前，确保你已经完全关闭了消费者</span></span><br><span class="line">    consumer.close();</span><br><span class="line">    System.out.println(<span class="string">&quot;Closed consumer and we are done&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="2-分区分配"><a href="#2-分区分配" class="headerlink" title="2. 分区分配"></a>2. 分区分配</h1><p>群组里的消费者共同读取主题的分区，一个新的消费者加入群组时，它读取的是原本由其他消费者读取的消息。</p>
+<p>当一个消费者被关闭或发生崩溃时，它就离开群组，原本由它读取的分区将由群组里的其他消费者来读取。在主题发生变化时，比如管理员添加了新的分区，会发生分区重分配。</p>
+<h2 id="3-1-再均衡"><a href="#3-1-再均衡" class="headerlink" title="3.1. 再均衡"></a>3.1. 再均衡</h2><h3 id="3-1-1-概述"><a href="#3-1-1-概述" class="headerlink" title="3.1.1. 概述"></a>3.1.1. 概述</h3><p><font color = 'blue'><strong>分区的所有权从一个消费者转移到另一个消费者，这样的行为被称为再均衡</strong></font></p>
+<p>再均衡为消费者群组带来了<strong>高可用</strong>和<strong>伸缩性。</strong></p>
+<p>再均衡期间，消费者无法读取消息，造成整个群组一小段时间内的不可用。此外，当分区被重新分配给另一个消费者时，消费者当前的读取状态会丢失，它还有可能还需要去刷新缓存，在它重新恢复状态之前会拖慢应用程序。<br>当消费者要加入群组时，会向群组协调器发送一个JoinGroup请求。第一个加入群组的消费者将成为群主。群主从协调器那里获取群组的成员列表，列表包含了最近发送过心跳的消费者，并负责给每一个消费者分配分区。<br>PartitionAssignor 接口的类决定哪些分区被分配给哪些消费者</p>
+<p>在Kafka中，当有新消费者加入或者订阅的topic数发生变化时，会触发Rebalance(再均衡：在同一个消费者组当中，分区的所有权从一个消费者转移到另外一个消费者)机制，Rebalance顾名思义就是重新均衡消费者消费。Rebalance的过程如下：</p>
+<p>第一步：所有成员都向coordinator发送请求，请求入组。一旦所有成员都发送了请求，coordinator会从中选择一个consumer担任leader的角色，并把组成员信息以及订阅信息发给leader。<br>第二步：leader开始分配消费方案，指明具体哪个consumer负责消费哪些topic的哪些partition。一旦完成分配，leader会将这个方案发给coordinator。coordinator接收到分配方案之后会把方案发给各个consumer，这样组内的所有成员就都知道自己应该消费哪些分区了。</p>
+<h3 id="3-1-2-条件"><a href="#3-1-2-条件" class="headerlink" title="3.1.2. 条件"></a>3.1.2. 条件</h3><ol>
+<li><p>消费者组中新<strong>添加消费者</strong>读取到原本是其他消费者读取的消息</p>
+</li>
+<li><p><strong>消费者关闭或崩溃</strong>之后离开群组，原本由他读取的  partition 将由群组里其他消费者读取</p>
+</li>
+<li><p>当向一个 Topic <strong>添加新的 partition</strong>，会发生 partition 在消费者中的重新分配</p>
+</li>
+</ol>
+<h3 id="3-1-3-再均衡监听器"><a href="#3-1-3-再均衡监听器" class="headerlink" title="3.1.3.  再均衡监听器"></a>3.1.3.  再均衡监听器</h3><p>在为消费者分配新的partition或者移除旧的partition时，可以通过消费者API执行一些应用程序代码，在使用<strong>subscribe</strong>()方法时传入一个<strong>ConsumerRebalanceListener</strong>实例。</p>
+<p><strong>ConsumerRebalanceListener</strong>需要实现的两个方法</p>
+<ol>
+<li><p><strong>public void onPartitionRevoked(Collection<TopicPartition> partitions)</strong></p>
+<p>该方法会在<strong>再均衡开始之前</strong>和<strong>消费者停止读取消息之后</strong>被调用。如果在这里提交偏移量，下一个接管partition的消费者就知道该从哪里开始读取了。</p>
+</li>
+<li><p><strong>public void onPartitionAssigned(Collection<TopicPartition> partitions)</strong></p>
+<p>该方法会在<strong>重新分配partition之后</strong>和<strong>消费者开始读取消息之前</strong>被调用。</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Map&lt;TopicPartition, OffsetAndMetadata&gt; currentOffsets = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">HandleRebalance</span> <span class="keyword">implements</span> <span class="title">ConsumerRebalanceListener</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onPartitionsAssigned</span><span class="params">(Collection&lt;TopicPartition&gt; partitions)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onPartitionsRevoked</span><span class="params">(Collection&lt;TopicPartition&gt; partitions)</span> </span>&#123;</span><br><span class="line">       <span class="comment">//如果发生再均衡，要在即将失去partition所有权时提交偏移量。</span></span><br><span class="line">       <span class="comment">//调用commitSync方法，确保在再均衡发生之前提交偏移量</span></span><br><span class="line">        consumer.commitSync(currentOffsets);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span>&#123;</span><br><span class="line">      consumer.subscribe(topics, <span class="keyword">new</span> HandleRebalance());</span><br><span class="line">      <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">          ConsumerRecords&lt;String, String&gt; records = consumer.poll(<span class="number">100</span>);</span><br><span class="line">          <span class="keyword">for</span> (ConsumerRecord&lt;String, String&gt; record : records) &#123;</span><br><span class="line">              currentOffsets.put(<span class="keyword">new</span> TopicPartition(record.topic(), record.partition()), </span><br><span class="line">                                 <span class="keyword">new</span> OffsetAndMetadata(record.offset() + <span class="number">1</span>, “no matadata”));</span><br><span class="line">          &#125;</span><br><span class="line">          consumer.commitAsync(currentOffsets, <span class="keyword">null</span>);</span><br><span class="line">  &#125; <span class="keyword">catch</span>(WakeupException e) &#123;</span><br><span class="line">      <span class="comment">//忽略异常，正在关闭消费者</span></span><br><span class="line">  &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">      log.error(<span class="string">&quot;unexpected error&quot;</span>, e);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="keyword">try</span>&#123;</span><br><span class="line">          consumer.commitSync(currentOffsets);</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">          consumer.close();</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="3-2-分区分配"><a href="#3-2-分区分配" class="headerlink" title="3.2. 分区分配"></a>3.2. 分区分配</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>在 Kafka 中，存在着三种分区分配策略。一种是 RangeAssignor 分配策略(范围分区)，另一种是 RoundRobinAssignor 分配策略(轮询分区)。默认采用 Range 范围分区。</p>
+<p>Kafka 提供了消费者客户端参数 partition.assignment.strategy 用来设置消费者与订阅主题之间的分区分配策略。默认情况下，此参数的值为：org.apache.kafka.clients.consumer.RangeAssignor，即采用 RangeAssignor 分配策略。</p>
+<p><img src="https://img-blog.csdnimg.cn/20200105211408449.png" alt="在这里插入图片描述"></p>
+<ol>
+<li><p><strong>RangeAssignor</strong></p>
+<p><strong>RangeAssignor 策略的原理是按照消费者总数和分区总数进行整除运算来获得一个跨度，然后将分区按照跨度进行平均分配，以保证分区尽可能均匀地分配给所有的消费者。对于每一个topic，RangeAssignor 策略会将消费组内所有订阅这个 topic 的消费者按照名称的字典序排序，然后为每个消费者划分固定的分区范围，如果不够平均分配，那么字典序靠前的消费者会被多分配一个分区。</strong></p>
+<ul>
+<li>topic下的所有有效分区平铺</li>
+<li>消费者按照字典排序</li>
+<li>分区数除以消费者数，得到 n</li>
+<li>分区数对消费者数取余，得到 m</li>
+<li>消费者集合中，前 m 个消费者能够分配到 n+1 个分区，而剩余的消费者只能分配到 n 个分区</li>
+</ul>
+</li>
+<li><p><strong>RoundRobinAssignor</strong></p>
+<p><strong>RoundRobin 轮询分区策略，是把所有的 partition 和所有的 consumer 都列出来，然后按照 hashcode 进行排序，最后通过轮询算法来分配 partition 给到各个消费者。</strong></p>
+<ul>
+<li>消费者按照字典排序，例如C0, C1, C2… …，并构造环形迭代器。</li>
+<li>topic 名称按照字典排序，并得到每个 topic 的所有分区，从而得到所有分区集合。</li>
+<li>遍历第2步所有分区集合，同时轮询消费者。</li>
+<li>如果轮询到的消费者订阅的topic不包括当前遍历的分区所属topic，则跳过；否则分配给当前消费者，并继续第3步。</li>
+</ul>
+</li>
+<li><p><strong>StickyAssignor</strong></p>
+<p>Kafka 从 0.11.x 版本开始引入 StickyAssignor 分配策略，它主要有两个目的：分区的分配要尽可能的均匀和分区的分配尽可能的与上次分配的保持相同。当两者发生冲突时，第一个目标优先于第二个目标。鉴于这两个目标，StickyAssignor 策略的具体实现要比 RangeAssignor 和RoundRobinAssignor 这两种分配策略要复杂很多。</p>
+</li>
+</ol>
+<h2 id="4-提交和偏移量-Offset"><a href="#4-提交和偏移量-Offset" class="headerlink" title="4. 提交和偏移量 Offset"></a>4. 提交和偏移量 Offset</h2><p>调用 poll() 时，返回由生产者写入 Kafka 但还没有被消费者读取过的记录</p>
+<h4 id="Offset-的维护"><a href="#Offset-的维护" class="headerlink" title="Offset 的维护"></a>Offset 的维护</h4><p>由于 consumer 在消费过程中可能会出现断电等故障，consumer恢复之后，需要从故障前的位置继续消费，所以 consumer 需要记录自己消费位置，以便故障恢复后继续消费。 </p>
+<p>Kafka 0.9 版本之前， comsumer 默认将 offset 保存在 Zookeeper中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 3] ls /</span><br><span class="line">[cluster, controller, brokers, zookeeper, admin, isr_change_notification, dubbo, log_dir_event_notification, controller_epoch, kafka-manager, consumers, hive_zookeeper_namespace_hive, latest_producer_id_block, config, hbase]</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 16] ls /consumers/console-consumer-37662/offsets/test_kafka</span><br><span class="line">[44, 45, 46, 47, 48, 49, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43]</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 19] ls /consumers/console-consumer-37662/offsets/test_kafka/0</span><br><span class="line">[]</span><br></pre></td></tr></table></figure>
+
+<p>从0.9 版本开始， consumer 默认将 offset 保存在 kafka __consumer_offsets主题中。</p>
+<img src="https://img-blog.csdnimg.cn/20200105165739847.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTA4MDk4NA==,size_13,color_FFFFFF,t_70" alt="在这里插入图片描述" style="zoom:50%;" />
+
+<h4 id="2-2-自动提交偏移量"><a href="#2-2-自动提交偏移量" class="headerlink" title="2.2. 自动提交偏移量"></a>2.2. 自动提交偏移量</h4><p>将enable.auto.commit 设为true，则每过5秒，消费者会自动把从 poll() 方法接受到的最大偏移量提交上去。提交时间由auto.commit.interval.ms控制，默认值为5秒</p>
+<ul>
+<li><p>自动提交偏移量不足</p>
+<p>假设我们使用默认的5秒提交时间间隔，在最近一次提交之后的3秒发生了再均衡，再均衡之后，消费者从最后一次提交的偏移量位置开始读取消息。这个时候偏移量已经落后了3秒，所以这3秒内到达的消息将会被重复处理。<br>**<font color='red'>注：可以通过修改提交时间间隔来频繁提交偏移量，减少可能出现重复消息的时间窗，不过这种情况无法完全避免。</font>**</p>
+<h4 id="2-3-手动提交偏移量"><a href="#2-3-手动提交偏移量" class="headerlink" title="2.3. 手动提交偏移量"></a>2.3. 手动提交偏移量</h4><p>把 enable.auto.commit 设为 false，让应用程序决定何时提交偏移量。使用 commitSync() 提交偏移量最简单也最可靠。</p>
+</li>
+</ul>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h2><h4 id="Kafka-如何保证消息有序"><a href="#Kafka-如何保证消息有序" class="headerlink" title="Kafka 如何保证消息有序 ?"></a><font color='blue'>Kafka 如何保证消息有序 ?</font></h4><p>kafka 中的每个 partition 中的消息在写入时都是有序的，而且单独一个 partition 只能由一个消费者去消费，可以在里面保证消息的顺序性。但是分区之间的消息是不保证有序的。</p>
+<p>两种方案</p>
+<ol>
+<li><p>kafka topic 只设置一个 partition 分区 </p>
+<p>kafka 默认保证同一个 partition 分区内的消息是有序的，则可以设置topic只使用一个分区，这样消息就是全局有序，缺点是只能被consumer group里的一个消费者消费，降低了性能，不适用高并发的情况</p>
+</li>
+<li><p>producer 将消息发送到指定 partition 分区</p>
+<p>既然 kafka 默认保证同一个 partition 分区内的消息是有序的，则 producer 可以在发送消息时可以指定需要保证顺序的几条消息发送到同一个分区，这样消费者消费时，消息就是有序。</p>
+</li>
+</ol>
+<h5 id="Kafka-缺点-？"><a href="#Kafka-缺点-？" class="headerlink" title="Kafka 缺点 ？"></a><font color='blue'>Kafka 缺点 ？</font></h5><ol>
+<li>由于是批量发送，数据并非真正的实时；</li>
+<li>对于mqtt协议不支持；</li>
+<li>不支持物联网传感数据直接接入；</li>
+<li>仅支持统一分区内消息有序，无法实现全局消息有序；</li>
+<li>监控不完善，需要安装插件；</li>
+<li>依赖zookeeper进行元数据管理；</li>
+</ol>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2019/02/13/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(3)%EF%BC%9A%E6%B6%88%E8%B4%B9%E8%80%85/">http://example.com/2019/02/13/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(3)%EF%BC%9A%E6%B6%88%E8%B4%B9%E8%80%85/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kafka/">Kafka</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/02/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(5)%EF%BC%9A%E5%8F%AF%E9%9D%A0%E6%80%A7%E4%BF%9D%E9%9A%9C/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">消息系统-Kafka(5)：可靠性保障</div></div></a></div><div class="next-post pull-right"><a href="/2019/02/12/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(1)%EF%BC%9A%E5%88%9D%E8%AF%86Kafka/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">消息系统-Kafka(1)：初识Kafka</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2019/02/12/消息系统-Kafka(1)：初识Kafka/" title="消息系统-Kafka(1)：初识Kafka"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-02-12</div><div class="title">消息系统-Kafka(1)：初识Kafka</div></div></a></div><div><a href="/2019/07/12/消息系统-Kafka(4)：事务/" title="消息系统-Kafka(2)：事务机制"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-07-12</div><div class="title">消息系统-Kafka(2)：事务机制</div></div></a></div><div><a href="/2019/02/15/消息系统-Kafka(5)：可靠性保障/" title="消息系统-Kafka(5)：可靠性保障"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-02-15</div><div class="title">消息系统-Kafka(5)：可靠性保障</div></div></a></div><div><a href="/2019/11/13/智慧出行服务体系建设的开发之订单和轨迹监控/" title="智慧出行服务体系建设的开发之订单和轨迹监控"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-11-13</div><div class="title">智慧出行服务体系建设的开发之订单和轨迹监控</div></div></a></div><div><a href="/2019/02/12/消息系统-Kafka(2)：生产者/" title="消息系统-Kafka(2)：生产者"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-02-12</div><div class="title">消息系统-Kafka(2)：生产者</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2020 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      placeholder: 'Please leave your footprints',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
