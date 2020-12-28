@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>消息系统-Kafka(2)：事务机制 | 周晓晨</title><meta name="keywords" content="Kafka"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Kafka 在 0.11 版本中除了引入了 Exactly Once 语义，还引入了事务特性。Kafka 事务特性是指一系列的生产者生产消息和消费者提交偏移量的操作在一个事务中，或者说是一个原子操作，生产消息和提交偏移量同时成功或者失败。">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>消息系统-Kafka(2)：事务机制 | 周晓晨</title><meta name="keywords" content="Kafka"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Kafka 在 0.11 版本中除了引入了 Exactly Once 语义，还引入了事务特性。Kafka 事务特性是指一系列的生产者生产消息和消费者提交偏移量的操作在一个事务中，或者说是一个原子操作，生产消息和提交偏移量同时成功或者失败。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="消息系统-Kafka(2)：事务机制">
 <meta property="og:url" content="http://joccer.gitee.io/2019/07/12/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(4)%EF%BC%9A%E4%BA%8B%E5%8A%A1/index.html">
@@ -107,7 +107,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -150,9 +150,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,

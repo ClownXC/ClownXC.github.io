@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spark Streaming 和 Kafka 整合开发 | 周晓晨</title><meta name="keywords" content="大数据,spark"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Apache Kafka 是一个分布式的消息发布-订阅系统。可以说，任何实时大数据处理工具缺少与 Kafka 整合都是不完整的。本文将介绍如何使用 Spark Streaming 从 Kafka 中接收数据， 这里介绍两种方法  使用 Receivers 和 Kafka 高层次的 API 使用 Direct API，这是使用低层次的 KafkaAPI，并没有使用到 Receivers，是 Spar">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spark Streaming 和 Kafka 整合开发 | 周晓晨</title><meta name="keywords" content="大数据,spark"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Apache Kafka 是一个分布式的消息发布-订阅系统。可以说，任何实时大数据处理工具缺少与 Kafka 整合都是不完整的。本文将介绍如何使用 Spark Streaming 从 Kafka 中接收数据， 这里介绍两种方法  使用 Receivers 和 Kafka 高层次的 API 使用 Direct API，这是使用低层次的 KafkaAPI，并没有使用到 Receivers，是 Spar">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark Streaming 和 Kafka 整合开发">
 <meta property="og:url" content="http://joccer.gitee.io/2019/12/15/Spark%20Streaming%20%E5%92%8C%20Kafka%20%E6%95%B4%E5%90%88%E5%BC%80%E5%8F%91/index.html">
@@ -108,7 +108,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -180,9 +180,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,

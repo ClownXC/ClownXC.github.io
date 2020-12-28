@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spark 架构设计 | 周晓晨</title><meta name="keywords" content="大数据,Spark"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Spark 核心组件DriverSpark 驱动器节点，用于执行 Spark 任务中的 main 方法， 负责实际代码的执行工作。Driver 在 Spark 作业执行时主要负责：  将用户程序转化为任务[job]  Executor 之间调度任务task  跟踪 Executor 的执行情况；  通过 UI 展示查询运行情况   ExecutorSpark Executor 节点是一个 JVM">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spark 架构设计 | 周晓晨</title><meta name="keywords" content="大数据,Spark"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Spark 核心组件DriverSpark 驱动器节点，用于执行 Spark 任务中的 main 方法， 负责实际代码的执行工作。Driver 在 Spark 作业执行时主要负责：  将用户程序转化为任务[job]  Executor 之间调度任务task  跟踪 Executor 的执行情况；  通过 UI 展示查询运行情况   ExecutorSpark Executor 节点是一个 JVM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark 架构设计">
 <meta property="og:url" content="http://joccer.gitee.io/2019/10/10/Spark%E6%9E%B6%E6%9E%84/index.html">
@@ -108,7 +108,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -208,9 +208,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,

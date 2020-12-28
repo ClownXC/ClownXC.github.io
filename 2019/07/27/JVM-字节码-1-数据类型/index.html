@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JVM 字节码[1]: 数据类型 | 周晓晨</title><meta name="keywords" content="大数据,JVM"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Class字节码中有两种数据类型： （1）字节数据直接量：这是基本的数据类型。共细分为u1、u2、u4、u8四种，分别代表连续的1个字节、2个字节、4个字节、8个字节组成的整体数据。（2）表&#x2F;数组：表是由多个基本数据或其他表，按照既定顺序组成的大的数据集合。表是有结构的，它的结构体：组成表的成分所在的位置和顺序都是已经严格定义好的。 Access Falgs：访问标志信息包括了该class文件是类">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JVM 字节码[1]: 数据类型 | 周晓晨</title><meta name="keywords" content="大数据,JVM"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Class字节码中有两种数据类型： （1）字节数据直接量：这是基本的数据类型。共细分为u1、u2、u4、u8四种，分别代表连续的1个字节、2个字节、4个字节、8个字节组成的整体数据。（2）表&#x2F;数组：表是由多个基本数据或其他表，按照既定顺序组成的大的数据集合。表是有结构的，它的结构体：组成表的成分所在的位置和顺序都是已经严格定义好的。 Access Falgs：访问标志信息包括了该class文件是类">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM 字节码[1]: 数据类型">
 <meta property="og:url" content="http://joccer.gitee.io/2019/07/27/JVM-%E5%AD%97%E8%8A%82%E7%A0%81-1-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/index.html">
@@ -108,7 +108,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -161,9 +161,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink WaterMark 深入理解 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="如果在进行 Window 计算操作的时候，如果使用的时间是 Processing Time，那么在 Flink 消费数据的时候，它完全不需要关心的数据本身的时间，意思也就是说不需要关心数据到底是延迟数据还是乱序数据。因为 Processing Time 只是代表数据在 Flink 被处理时的时间，这个时间是顺序的。但是如果你使用的是 Event Time 的话，那么你就不得不面临着这么个问题：事件">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink WaterMark 深入理解 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="如果在进行 Window 计算操作的时候，如果使用的时间是 Processing Time，那么在 Flink 消费数据的时候，它完全不需要关心的数据本身的时间，意思也就是说不需要关心数据到底是延迟数据还是乱序数据。因为 Processing Time 只是代表数据在 Flink 被处理时的时间，这个时间是顺序的。但是如果你使用的是 Event Time 的话，那么你就不得不面临着这么个问题：事件">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Flink WaterMark 深入理解">
 <meta property="og:url" content="http://joccer.gitee.io/2019/12/13/Flink-WaterMark-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/index.html">
@@ -108,7 +108,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -232,9 +232,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,

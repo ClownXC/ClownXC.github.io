@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink State 深入理解 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Flink 是一款有状态的流处理框架 State 概述为什么需要 state？对于流处理系统，数据是一条一条被处理的，如果没有对数据处理的进度进行记录，那么如果这个处理数据的 Job 因为机器问题或者其他问题而导致重启，那么它是不知道上一次处理数据是到哪个地方了，这样的情况下如果是批数据，倒是可以很好的解决（重新将这份固定的数据再执行一遍），但是流数据那就麻烦了，你根本不知道什么在 Job 挂的那">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink State 深入理解 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Flink 是一款有状态的流处理框架 State 概述为什么需要 state？对于流处理系统，数据是一条一条被处理的，如果没有对数据处理的进度进行记录，那么如果这个处理数据的 Job 因为机器问题或者其他问题而导致重启，那么它是不知道上一次处理数据是到哪个地方了，这样的情况下如果是批数据，倒是可以很好的解决（重新将这份固定的数据再执行一遍），但是流数据那就麻烦了，你根本不知道什么在 Job 挂的那">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Flink State 深入理解">
 <meta property="og:url" content="http://joccer.gitee.io/2019/12/07/Flink-State-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/index.html">
@@ -108,7 +108,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -390,9 +390,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,

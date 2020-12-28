@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink 重启策略 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Flink Job 常见重启错误不知道大家是否有遇到过这样的问题：整个 Job 一直在重启，并且还会伴随着一些错误（可以通过 UI 查看 Exceptions 日志）    其实遇到上面这种问题比较常见的，比如有时候因为数据的问题（不合规范、为 null 等），这时在处理这些脏数据的时候可能就会遇到各种各样的异常错误，比如空指针、数组越界、数据类型转换错误等。可能你会说只要过滤掉这种脏数据就行了，">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink 重启策略 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Flink Job 常见重启错误不知道大家是否有遇到过这样的问题：整个 Job 一直在重启，并且还会伴随着一些错误（可以通过 UI 查看 Exceptions 日志）    其实遇到上面这种问题比较常见的，比如有时候因为数据的问题（不合规范、为 null 等），这时在处理这些脏数据的时候可能就会遇到各种各样的异常错误，比如空指针、数组越界、数据类型转换错误等。可能你会说只要过滤掉这种脏数据就行了，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Flink 重启策略">
 <meta property="og:url" content="http://joccer.gitee.io/2019/12/09/Flink-%E9%87%8D%E5%90%AF%E7%AD%96%E7%95%A5/index.html">
@@ -108,7 +108,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -211,9 +211,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,

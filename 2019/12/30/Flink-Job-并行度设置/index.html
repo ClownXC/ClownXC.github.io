@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink Job 并行度设置 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="生产环境如果 Job 突然消费不及时了，或者 Job 就根本不在消费数据了，那么该怎么办？首先得看下相关的监控查看 Job 是否在正常运行，是否出现反压的情况，是否这会生产数据量过大然而并行度却是根据之前数据量设置的，种种原因都需要一个个排查一下，然后找到根因才能够对应的去解决。这节来讲解下遇到这种问题后如何合理配置并行度呢？">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flink Job 并行度设置 | 周晓晨</title><meta name="keywords" content="大数据,Flink"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="生产环境如果 Job 突然消费不及时了，或者 Job 就根本不在消费数据了，那么该怎么办？首先得看下相关的监控查看 Job 是否在正常运行，是否出现反压的情况，是否这会生产数据量过大然而并行度却是根据之前数据量设置的，种种原因都需要一个个排查一下，然后找到根因才能够对应的去解决。这节来讲解下遇到这种问题后如何合理配置并行度呢？">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Flink Job 并行度设置">
 <meta property="og:url" content="http://joccer.gitee.io/2019/12/30/Flink-Job-%E5%B9%B6%E8%A1%8C%E5%BA%A6%E8%AE%BE%E7%BD%AE/index.html">
@@ -108,7 +108,7 @@ var saveToLocal = {
     }
   }
 
-  const autoChangeMode = 'false'
+  const autoChangeMode = '2'
   const t = saveToLocal.get('theme')
   if (autoChangeMode === '1') {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -163,9 +163,9 @@ var saveToLocal = {
       el: '#vcomment',
       appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
       appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
-      placeholder: 'Please leave your footprints',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
       avatar: 'monsterid',
-      meta: 'nick,mail,link'.split(','),
+      meta: 'nick,mail'.split(','),
       pageSize: '10',
       lang: 'en',
       recordIP: false,
