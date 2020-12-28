@@ -1,0 +1,1511 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JVM 指令集 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="指令码 助记符 功能描述   0x00 nop 无操作   0x01 aconst_null aconst_null 功能描述 null进栈指令执行前指令执行后栈底…… null栈顶     注意：JVM并没有为null指派一个具体的值。   0x02 iconst_m1 int型常量值-1进栈   0x03 iconst_0 int型常量值0进栈   0x04 iconst_1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM 指令集">
+<meta property="og:url" content="http://joccer.gitee.io/2019/07/03/JVM-%E6%8C%87%E4%BB%A4%E9%9B%86/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="指令码 助记符 功能描述   0x00 nop 无操作   0x01 aconst_null aconst_null 功能描述 null进栈指令执行前指令执行后栈底…… null栈顶     注意：JVM并没有为null指派一个具体的值。   0x02 iconst_m1 int型常量值-1进栈   0x03 iconst_0 int型常量值0进栈   0x04 iconst_1">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-07-03T08:35:12.000Z">
+<meta property="article:modified_time" content="2020-02-26T05:49:27.000Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2019/07/03/JVM-%E6%8C%87%E4%BB%A4%E9%9B%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2020-02-26 13:49:27'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">48</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">10</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">JVM 指令集</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-07-03T08:35:12.000Z" title="发表于 2019-07-03 16:35:12">2019-07-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-02-26T05:49:27.000Z" title="更新于 2020-02-26 13:49:27">2020-02-26</time></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>13分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><table>
+<thead>
+<tr>
+<th align="center"></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>指令码</strong></td>
+<td><strong>助记符</strong></td>
+<td><strong>功能描述</strong></td>
+</tr>
+<tr>
+<td align="center">0x00</td>
+<td>nop</td>
+<td>无操作</td>
+</tr>
+<tr>
+<td align="center">0x01</td>
+<td>aconst_null</td>
+<td>aconst_null 功能描述 null进栈指令执行前指令执行后栈底…… null栈顶     注意：JVM并没有为null指派一个具体的值。</td>
+</tr>
+<tr>
+<td align="center">0x02</td>
+<td>iconst_m1</td>
+<td>int型常量值-1进栈</td>
+</tr>
+<tr>
+<td align="center">0x03</td>
+<td>iconst_0</td>
+<td>int型常量值0进栈</td>
+</tr>
+<tr>
+<td align="center">0x04</td>
+<td>iconst_1</td>
+<td>int型常量值1进栈</td>
+</tr>
+<tr>
+<td align="center">0x05</td>
+<td>iconst_2</td>
+<td>int型常量值2进栈</td>
+</tr>
+<tr>
+<td align="center">0x06</td>
+<td>iconst_3</td>
+<td>int型常量值3进栈</td>
+</tr>
+<tr>
+<td align="center">0x07</td>
+<td>iconst_4</td>
+<td>int型常量值4进栈</td>
+</tr>
+<tr>
+<td align="center">0x08</td>
+<td>iconst_5</td>
+<td>int型常量值5进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x09</td>
+<td>lconst_0</td>
+<td>long型常量值0进栈</td>
+</tr>
+<tr>
+<td align="center">0x0A</td>
+<td>lconst_1</td>
+<td>long型常量值1进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x0B</td>
+<td>fconst_0</td>
+<td>float型常量值0进栈</td>
+</tr>
+<tr>
+<td align="center">0x0C</td>
+<td>fconst_1</td>
+<td>float型常量值1进栈</td>
+</tr>
+<tr>
+<td align="center">0x0D</td>
+<td>fconst_2</td>
+<td>float型常量值2进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x0E</td>
+<td>dconst_0</td>
+<td>double型常量值0进栈</td>
+</tr>
+<tr>
+<td align="center">0x0F</td>
+<td>dconst_1</td>
+<td>double型常量值1进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x10</td>
+<td>bipush</td>
+<td>将一个byte型常量值推送至栈顶</td>
+</tr>
+<tr>
+<td align="center">0x11</td>
+<td>sipush</td>
+<td>将一个short型常量值推送至栈顶</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x12</td>
+<td>ldc</td>
+<td>将int、float或String型常量值从常量池中推送至栈顶</td>
+</tr>
+<tr>
+<td align="center">0x13</td>
+<td>ldc_w</td>
+<td>将int、float或String型常量值从常量池中推送至栈顶（宽索引）</td>
+</tr>
+<tr>
+<td align="center">0x14</td>
+<td>ldc2_w</td>
+<td>将long或double型常量值从常量池中推送至栈顶（宽索引）</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x15</td>
+<td>iload</td>
+<td>指定的int型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x16</td>
+<td>lload</td>
+<td>指定的long型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x17</td>
+<td>fload</td>
+<td>指定的float型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x18</td>
+<td>dload</td>
+<td>指定的double型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x19</td>
+<td>aload</td>
+<td>指令格式： aload index功能描述： 当前frame的局部变量数组中下标为index的引用型局部变量进栈指令执行前指令执行后栈底…… objectref栈顶     index ： 无符号一byte整型。和wide指令联用， 可以使index为两byte</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x1A</td>
+<td>iload_0</td>
+<td>第一个int型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x1B</td>
+<td>iload_1</td>
+<td>第二个int型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x1C</td>
+<td>iload_2</td>
+<td>第三个int型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x1D</td>
+<td>iload_3</td>
+<td>第四个int型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x1E</td>
+<td>lload_0</td>
+<td>第一个long型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x1F</td>
+<td>lload_1</td>
+<td>第二个long型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x20</td>
+<td>lload_2</td>
+<td>第三个long型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x21</td>
+<td>lload_3</td>
+<td>第四个long型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x22</td>
+<td>fload_0</td>
+<td>第一个float型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x23</td>
+<td>fload_1</td>
+<td>第二个float型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x24</td>
+<td>fload_2</td>
+<td>第三个float型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x25</td>
+<td>fload_3</td>
+<td>第四个float型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x26</td>
+<td>dload_0</td>
+<td>第一个double型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x27</td>
+<td>dload_1</td>
+<td>第二个double型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x28</td>
+<td>dload_2</td>
+<td>第三个double型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center">0x29</td>
+<td>dload_3</td>
+<td>第四个double型局部变量进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x2A</td>
+<td>aload_0</td>
+<td>指令格式：aload_0该指令的行为类似于aload指令index为0的情况。</td>
+</tr>
+<tr>
+<td align="center">0x2B</td>
+<td>aload_1</td>
+<td>同上</td>
+</tr>
+<tr>
+<td align="center">0x2C</td>
+<td>aload_2</td>
+<td>同上</td>
+</tr>
+<tr>
+<td align="center">0x2D</td>
+<td>aload_3</td>
+<td>同上</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x2E</td>
+<td>iaload</td>
+<td>指定的int型数组的指定下标处的值进栈</td>
+</tr>
+<tr>
+<td align="center">0x2F</td>
+<td>laload</td>
+<td>指定的long型数组的指定下标处的值进栈</td>
+</tr>
+<tr>
+<td align="center">0x30</td>
+<td>faload</td>
+<td>指定的float型数组的指定下标处的值进栈</td>
+</tr>
+<tr>
+<td align="center">0x31</td>
+<td>daload</td>
+<td>指定的double型数组的指定下标处的值进栈</td>
+</tr>
+<tr>
+<td align="center">0x32</td>
+<td>aaload</td>
+<td>指令格式： aaload 功能描述： 栈顶的数组下标（index）、数组引用（arrayref）出栈，并根据这两个数值取出对应的数组元素值（value）进栈。 抛出异常： 如果arrayref的值为null，会抛出NullPointerException。如果index造成数组越界，会抛出ArrayIndexOutOfBoundsException。指令执行前指令执行后栈底……arrayrefvalueindex 栈顶      index： int类型arrayref： 数组的引用</td>
+</tr>
+<tr>
+<td align="center">0x33</td>
+<td>baload</td>
+<td>指定的boolean或byte型数组的指定下标处的值进栈</td>
+</tr>
+<tr>
+<td align="center">0x34</td>
+<td>caload</td>
+<td>指定的char型数组的指定下标处的值进栈</td>
+</tr>
+<tr>
+<td align="center">0x35</td>
+<td>saload</td>
+<td>指定的short型数组的指定下标处的值进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x36</td>
+<td>istore</td>
+<td>将栈顶int型数值存入指定的局部变量</td>
+</tr>
+<tr>
+<td align="center">0x37</td>
+<td>lstore</td>
+<td>将栈顶long型数值存入指定的局部变量</td>
+</tr>
+<tr>
+<td align="center">0x38</td>
+<td>fstore</td>
+<td>将栈顶float型数值存入指定的局部变量</td>
+</tr>
+<tr>
+<td align="center">0x39</td>
+<td>dstore</td>
+<td>将栈顶double型数值存入指定的局部变量</td>
+</tr>
+<tr>
+<td align="center">0x3A</td>
+<td>astore</td>
+<td>astore index 功能描述： 将栈顶数值（objectref）存入当前frame的局部变量数组中指定下标（index）处的变量中，栈顶数值出栈。指令执行前指令执行后栈底……objectref 栈顶     index ： 无符号一byte整数。该指令和wide联用，index可以为无符号两byte整数</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x3B</td>
+<td>istore_0</td>
+<td>将栈顶int型数值存入第一个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x3C</td>
+<td>istore_1</td>
+<td>将栈顶int型数值存入第二个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x3D</td>
+<td>istore_2</td>
+<td>将栈顶int型数值存入第三个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x3E</td>
+<td>istore_3</td>
+<td>将栈顶int型数值存入第四个局部变量</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x3F</td>
+<td>lstore_0</td>
+<td>将栈顶long型数值存入第一个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x40</td>
+<td>lstore_1</td>
+<td>将栈顶long型数值存入第二个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x41</td>
+<td>lstore_2</td>
+<td>将栈顶long型数值存入第三个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x42</td>
+<td>lstore_3</td>
+<td>将栈顶long型数值存入第四个局部变量</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x43</td>
+<td>fstore_0</td>
+<td>将栈顶float型数值存入第一个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x44</td>
+<td>fstore_1</td>
+<td>将栈顶float型数值存入第二个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x45</td>
+<td>fstore_2</td>
+<td>将栈顶float型数值存入第三个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x46</td>
+<td>fstore_3</td>
+<td>将栈顶float型数值存入第四个局部变量</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x47</td>
+<td>dstore_0</td>
+<td>将栈顶double型数值存入第一个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x48</td>
+<td>dstore_1</td>
+<td>将栈顶double型数值存入第二个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x49</td>
+<td>dstore_2</td>
+<td>将栈顶double型数值存入第三个局部变量</td>
+</tr>
+<tr>
+<td align="center">0x4A</td>
+<td>dstore_3</td>
+<td>将栈顶double型数值存入第四个局部变量</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x4B</td>
+<td>astore_0</td>
+<td>指令格式： astore_0功能描述： 该指令的行为类似于astore指令index为0的情况。</td>
+</tr>
+<tr>
+<td align="center">0x4C</td>
+<td>astore_1</td>
+<td>同上</td>
+</tr>
+<tr>
+<td align="center">0x4D</td>
+<td>astore_2</td>
+<td>同上</td>
+</tr>
+<tr>
+<td align="center">0x4E</td>
+<td>astore_3</td>
+<td>同上</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x4F</td>
+<td>iastore</td>
+<td>将栈顶int型数值存入指定数组的指定下标处</td>
+</tr>
+<tr>
+<td align="center">0x50</td>
+<td>lastore</td>
+<td>将栈顶long型数值存入指定数组的指定下标处</td>
+</tr>
+<tr>
+<td align="center">0x51</td>
+<td>fastore</td>
+<td>将栈顶float型数值存入指定数组的指定下标处</td>
+</tr>
+<tr>
+<td align="center">0x52</td>
+<td>dastore</td>
+<td>将栈顶double型数值存入指定数组的指定下标处</td>
+</tr>
+<tr>
+<td align="center">0x53</td>
+<td>aastore</td>
+<td>指令格式： aastore 功能描述： 根据栈顶的引用型数值（value）、数组下标（index）、数组引用（arrayref）出栈，将数值存入对应的数组元素中抛出异常： 如果value的类型和arrayref所引用的数组的元素类型不兼容，会抛出抛出ArrayStoreException。如果index造成数组越界，会抛出ArrayIndexOutOfBoundsException。 如果arrayref值为null，会抛出NullPointerException。指令执行前指令执行后栈底……arrayref index value 栈顶       arrayref ： 必须是对数组的引用index ： int类型value ： 引用类型</td>
+</tr>
+<tr>
+<td align="center">0x54</td>
+<td>bastore</td>
+<td>将栈顶boolean或byte型数值存入指定数组的指定下标处</td>
+</tr>
+<tr>
+<td align="center">0x55</td>
+<td>castore</td>
+<td>将栈顶char型数值存入指定数组的指定下标处</td>
+</tr>
+<tr>
+<td align="center">0x56</td>
+<td>sastore</td>
+<td>将栈顶short型数值存入指定数组的指定下标处</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x57</td>
+<td>pop</td>
+<td>栈顶数值出栈 (该栈顶数值不能是long或double型)</td>
+</tr>
+<tr>
+<td align="center">0x58</td>
+<td>pop2</td>
+<td>栈顶的一个（如果是long、double型的)或两个（其它类型的）数值出栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x59</td>
+<td>dup</td>
+<td>复制栈顶数值，并且复制值进栈</td>
+</tr>
+<tr>
+<td align="center">0x5A</td>
+<td>dup_x1</td>
+<td>复制栈顶数值，并且复制值进栈2次</td>
+</tr>
+<tr>
+<td align="center">0x5B</td>
+<td>dup_x2</td>
+<td>复制栈顶数值，并且复制值进栈2次或3次</td>
+</tr>
+<tr>
+<td align="center">0x5C</td>
+<td>dup2</td>
+<td>复制栈顶一个（long、double型的)或两个（其它类型的）数值，并且复制值进栈</td>
+</tr>
+<tr>
+<td align="center">0x5D</td>
+<td>dup2_x1</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x5E</td>
+<td>dup2_x2</td>
+<td></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x5F</td>
+<td>swap</td>
+<td>栈顶的两个数值互换(要求栈顶的两个数值不能是long或double型的)</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x60</td>
+<td>iadd</td>
+<td>栈顶两int型数值相加，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x61</td>
+<td>ladd</td>
+<td>栈顶两long型数值相加，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x62</td>
+<td>fadd</td>
+<td>栈顶两float型数值相加，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x63</td>
+<td>dadd</td>
+<td>栈顶两double型数值相加，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x64</td>
+<td>isub</td>
+<td>栈顶两int型数值相减，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x65</td>
+<td>lsub</td>
+<td>栈顶两long型数值相减，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x66</td>
+<td>fsub</td>
+<td>栈顶两float型数值相减，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x67</td>
+<td>dsub</td>
+<td>栈顶两double型数值相减，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x68</td>
+<td>imul</td>
+<td>栈顶两int型数值相乘，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x69</td>
+<td>lmul</td>
+<td>栈顶两long型数值相乘，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x6A</td>
+<td>fmul</td>
+<td>栈顶两float型数值相乘，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x6B</td>
+<td>dmul</td>
+<td>栈顶两double型数值相乘，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x6C</td>
+<td>idiv</td>
+<td>栈顶两int型数值相除，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x6D</td>
+<td>ldiv</td>
+<td>栈顶两long型数值相除，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x6E</td>
+<td>fdiv</td>
+<td>栈顶两float型数值相除，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x6F</td>
+<td>ddiv</td>
+<td>栈顶两double型数值相除，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x70</td>
+<td>irem</td>
+<td>栈顶两int型数值作取模运算，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x71</td>
+<td>lrem</td>
+<td>栈顶两long型数值作取模运算，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x72</td>
+<td>frem</td>
+<td>栈顶两float型数值作取模运算，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x73</td>
+<td>drem</td>
+<td>栈顶两double型数值作取模运算，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x74</td>
+<td>ineg</td>
+<td>栈顶int型数值取负，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x75</td>
+<td>lneg</td>
+<td>栈顶long型数值取负，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x76</td>
+<td>fneg</td>
+<td>栈顶float型数值取负，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x77</td>
+<td>dneg</td>
+<td>栈顶double型数值取负，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x78</td>
+<td>ishl</td>
+<td>int型数值左移指定位数，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x79</td>
+<td>lshl</td>
+<td>long型数值左移指定位数，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x7A</td>
+<td>ishr</td>
+<td>int型数值带符号右移指定位数，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x7B</td>
+<td>lshr</td>
+<td>long型数值带符号右移指定位数，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x7C</td>
+<td>iushr</td>
+<td>int型数值无符号右移指定位数，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x7D</td>
+<td>lushr</td>
+<td>long型数值无符号右移指定位数，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x7E</td>
+<td>iand</td>
+<td>栈顶两int型数值按位与，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x7F</td>
+<td>land</td>
+<td>栈顶两long型数值按位与，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x80</td>
+<td>ior</td>
+<td>栈顶两int型数值按位或，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x81</td>
+<td>lor</td>
+<td>栈顶两long型数值按位或，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x82</td>
+<td>ixor</td>
+<td>栈顶两int型数值按位异或，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x83</td>
+<td>lxor</td>
+<td>栈顶两long型数值按位异或，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x84</td>
+<td>iinc</td>
+<td>指定int型变量增加指定值</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x85</td>
+<td>i2l</td>
+<td>栈顶int值强转long值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x86</td>
+<td>i2f</td>
+<td>栈顶int值强转float值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x87</td>
+<td>i2d</td>
+<td>栈顶int值强转double值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x88</td>
+<td>l2i</td>
+<td>栈顶long值强转int值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x89</td>
+<td>l2f</td>
+<td>栈顶long值强转float值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x8A</td>
+<td>l2d</td>
+<td>栈顶long值强转double值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x8B</td>
+<td>f2i</td>
+<td>栈顶float值强转int值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x8C</td>
+<td>f2l</td>
+<td>栈顶float值强转long值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x8D</td>
+<td>f2d</td>
+<td>栈顶float值强转double值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x8E</td>
+<td>d2i</td>
+<td>栈顶double值强转int值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x8F</td>
+<td>d2l</td>
+<td>栈顶double值强转long值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x90</td>
+<td>d2f</td>
+<td>栈顶double值强转float值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x91</td>
+<td>i2b</td>
+<td>栈顶int值强转byte值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x92</td>
+<td>i2c</td>
+<td>栈顶int值强转char值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center">0x93</td>
+<td>i2s</td>
+<td>栈顶int值强转short值，并且结果进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x94</td>
+<td>lcmp</td>
+<td>比较栈顶两long型数值大小，并且结果（1，0，-1）进栈</td>
+</tr>
+<tr>
+<td align="center">0x95</td>
+<td>fcmpl</td>
+<td>比较栈顶两float型数值大小，并且结果（1，0，-1）进栈；当其中一个数值为NaN时， -1进栈</td>
+</tr>
+<tr>
+<td align="center">0x96</td>
+<td>fcmpg</td>
+<td>比较栈顶两float型数值大小，并且结果（1，0，-1）进栈；当其中一个数值为NaN时，1进栈</td>
+</tr>
+<tr>
+<td align="center">0x97</td>
+<td>dcmpl</td>
+<td>比较栈顶两double型数值大小，并且结果（1，0，-1）进栈；当其中一个数值为NaN时，-1进栈</td>
+</tr>
+<tr>
+<td align="center">0x98</td>
+<td>dcmpg</td>
+<td>比较栈顶两double型数值大小，并且结果（1，0，-1）进栈；当其中一个数值为NaN时，1进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0x99</td>
+<td>ifeq</td>
+<td>当栈顶int型数值等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0x9A</td>
+<td>ifne</td>
+<td>当栈顶int型数值不等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0x9B</td>
+<td>iflt</td>
+<td>当栈顶int型数值小于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0x9C</td>
+<td>ifge</td>
+<td>当栈顶int型数值大于等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0x9D</td>
+<td>ifgt</td>
+<td>当栈顶int型数值大于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0x9E</td>
+<td>ifle</td>
+<td>当栈顶int型数值小于等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0x9F</td>
+<td>if_icmpeq</td>
+<td>比较栈顶两int型数值大小，当结果等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0xA0</td>
+<td>if_icmpne</td>
+<td>比较栈顶两int型数值大小，当结果不等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0xA1</td>
+<td>if_icmplt</td>
+<td>比较栈顶两int型数值大小，当结果小于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0xA2</td>
+<td>if_icmpge</td>
+<td>比较栈顶两int型数值大小，当结果大于等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0xA3</td>
+<td>if_icmpgt</td>
+<td>比较栈顶两int型数值大小，当结果大于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0xA4</td>
+<td>if_icmple</td>
+<td>比较栈顶两int型数值大小，当结果小于等于0时跳转</td>
+</tr>
+<tr>
+<td align="center">0xA5</td>
+<td>if_acmpeq</td>
+<td>比较栈顶两引用型数值，当结果相等时跳转</td>
+</tr>
+<tr>
+<td align="center">0xA6</td>
+<td>if_acmpne</td>
+<td>比较栈顶两引用型数值，当结果不相等时跳转</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xA7</td>
+<td>goto</td>
+<td>无条件跳转</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xA8</td>
+<td>jsr</td>
+<td>跳转至指定16位offset位置，并将jsr下一条指令地址压入栈顶</td>
+</tr>
+<tr>
+<td align="center">0xA9</td>
+<td>ret</td>
+<td>返回至局部变量指定的index的指令位置（通常与jsr、jsr_w联合使用）</td>
+</tr>
+<tr>
+<td align="center">0xAA</td>
+<td>tableswitch</td>
+<td>用于switch条件跳转，case值连续（可变长度指令）</td>
+</tr>
+<tr>
+<td align="center">0xAB</td>
+<td>lookupswitch</td>
+<td>用于switch条件跳转，case值不连续（可变长度指令）</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xAC</td>
+<td>ireturn</td>
+<td>当前方法返回int</td>
+</tr>
+<tr>
+<td align="center">0xAD</td>
+<td>lreturn</td>
+<td>当前方法返回long</td>
+</tr>
+<tr>
+<td align="center">0xAE</td>
+<td>freturn</td>
+<td>当前方法返回float</td>
+</tr>
+<tr>
+<td align="center">0xAF</td>
+<td>dreturn</td>
+<td>当前方法返回double</td>
+</tr>
+<tr>
+<td align="center">0xB0</td>
+<td>areturn</td>
+<td>指令格式： areturn功能描述： 从方法中返回一个对象的引用。抛出异常： 如果当前方法是<code>synchronized</code>方法，并且当前线程不是改方法的锁的拥有者，会抛出IllegalMonitorStateException指令执行前指令执行后栈底… objectref 栈顶     objectref ： 被返回的对象引用</td>
+</tr>
+<tr>
+<td align="center">0xB1</td>
+<td>return</td>
+<td>当前方法返回void</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xB2</td>
+<td>getstatic</td>
+<td>获取指定类的静态域，并将其值压入栈顶</td>
+</tr>
+<tr>
+<td align="center">0xB3</td>
+<td>putstatic</td>
+<td>为指定的类的静态域赋值</td>
+</tr>
+<tr>
+<td align="center">0xB4</td>
+<td>getfield</td>
+<td>获取指定类的实例域，并将其值压入栈顶</td>
+</tr>
+<tr>
+<td align="center">0xB5</td>
+<td>putfield</td>
+<td>为指定的类的实例域赋值</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xB6</td>
+<td>invokevirtual</td>
+<td>调用实例方法</td>
+</tr>
+<tr>
+<td align="center">0xB7</td>
+<td>invokespecial</td>
+<td>调用超类构造方法、实例初始化方法、私有方法</td>
+</tr>
+<tr>
+<td align="center">0xB8</td>
+<td>invokestatic</td>
+<td>调用静态方法</td>
+</tr>
+<tr>
+<td align="center">0xb9</td>
+<td>invokeinterface</td>
+<td>调用接口方法</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xBA</td>
+<td>—</td>
+<td>因为历史原因，该码点为未使用的保留码点</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xBB</td>
+<td>new</td>
+<td>创建一个对象，并且其引用进栈</td>
+</tr>
+<tr>
+<td align="center">0xBC</td>
+<td>newarray</td>
+<td>创建一个基本类型数组，并且其引用进栈</td>
+</tr>
+<tr>
+<td align="center">0xBD</td>
+<td>anewarray</td>
+<td>指令格式： anewarray index1 index2 功能描述： 栈顶数值（count）作为数组长度，创建 一个引用 型数组。栈顶数值出栈，数组引用进栈。 抛出异常： 如果count小于0，会抛出 NegativeArraySizeException指令执行前指令执行后栈底……countarrayref栈顶     count： int类型。arrayref： 对所创建的数组的引用。</td>
+</tr>
+<tr>
+<td align="center">0xBE</td>
+<td>arraylength</td>
+<td>指令格式： arraylength功能描述： 栈顶的数组引用（arrayref）出栈，该 数组的长度进栈。抛出异常： 如果arrayref的值为null，会抛出NullPointerException。指令执行前指令执行后栈底……arrayreflength栈顶     arrayref： 数组引用length： 数组长度</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xBF</td>
+<td>athrow</td>
+<td>指令格式： athrow功能描述： 将栈顶的数值作为异常或错误抛出抛出异常： 如果栈顶数值为null，则使用NullPointerException代替栈顶数值抛出。如果方法是的，则有可能抛出 IllegalMonitorStateException。指令执行前指令执行后栈底…objectrefobjectref 栈顶     objectref： Throwable或其子类的实例的引用。</td>
+</tr>
+<tr>
+<td align="center">0xC0</td>
+<td>checkcast</td>
+<td>类型转换检查，如果该检查未通过将会抛出ClassCastException异常</td>
+</tr>
+<tr>
+<td align="center">0xc1</td>
+<td>instanceof</td>
+<td>检查对象是否是指定的类的实例。如果是，1进栈；否则，0进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xC2</td>
+<td>monitorenter</td>
+<td>获得对象锁</td>
+</tr>
+<tr>
+<td align="center">0xC3</td>
+<td>monitorexit</td>
+<td>释放对象锁</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xC4</td>
+<td>wide</td>
+<td>用于修改其他指令的行为</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xC5</td>
+<td>multianewarray</td>
+<td>创建指定类型和维度的多维数组（执行该指令时，栈中必须包含各维度的长度值），并且其引用值进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xC6</td>
+<td>ifnull</td>
+<td>为null时跳转</td>
+</tr>
+<tr>
+<td align="center">0xC7</td>
+<td>ifnonnull</td>
+<td>不为null时跳转</td>
+</tr>
+<tr>
+<td align="center">0xC8</td>
+<td>goto_w</td>
+<td>无条件跳转（宽索引）</td>
+</tr>
+<tr>
+<td align="center">0xC9</td>
+<td>jsr_w</td>
+<td>跳转至指定32位offset位置，并且jsr_w下一条指令地址进栈</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xCA</td>
+<td>breakpoint</td>
+<td></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xFE</td>
+<td>impdep1</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">0xFF</td>
+<td>impdep2</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2019/07/03/JVM-%E6%8C%87%E4%BB%A4%E9%9B%86/">http://joccer.gitee.io/2019/07/03/JVM-%E6%8C%87%E4%BB%A4%E9%9B%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/07/12/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(4)%EF%BC%9A%E4%BA%8B%E5%8A%A1/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">消息系统-Kafka(2)：事务机制</div></div></a></div><div class="next-post pull-right"><a href="/2019/07/01/JVM-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8-1-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">JVM 垃圾收集器[1]:垃圾回收算法</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2020 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'Please leave your footprints',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
