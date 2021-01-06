@@ -1,0 +1,267 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>周晓晨 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="1. Lambda 架构1.1. 简介Lambda 架构是由 Storm 的作者 Nathan Marz 提出的一个实时大数据处理框架。Lambda 架构是其根据多年进行分布式大数据系统的经验总结提炼而成。Lambda 架构的目标是设计出一个能满足实时大数据系统关键特性的架构，包括有：高容错、低延时和可扩展等。Lambda 架构整合离线计算和实时计算，融合不可变性（Immunability），读写">
+<meta property="og:type" content="article">
+<meta property="og:title" content="周晓晨">
+<meta property="og:url" content="http://joccer.gitee.io/2020/09/14/%E6%95%B0%E6%8D%AE%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84-Lambda/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="1. Lambda 架构1.1. 简介Lambda 架构是由 Storm 的作者 Nathan Marz 提出的一个实时大数据处理框架。Lambda 架构是其根据多年进行分布式大数据系统的经验总结提炼而成。Lambda 架构的目标是设计出一个能满足实时大数据系统关键特性的架构，包括有：高容错、低延时和可扩展等。Lambda 架构整合离线计算和实时计算，融合不可变性（Immunability），读写">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2020-09-14T03:09:42.828Z">
+<meta property="article:modified_time" content="2021-01-05T02:01:11.625Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2020/09/14/%E6%95%B0%E6%8D%AE%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84-Lambda/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-01-05 10:01:11'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">64</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">5</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">10</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Lambda-%E6%9E%B6%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">1. Lambda 架构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E7%AE%80%E4%BB%8B"><span class="toc-number">1.1.</span> <span class="toc-text">1.1. 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E4%B8%89%E5%B1%82%E6%9E%B6%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">1.2. 三层架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-1-Batch-Layer-%E6%89%B9%E5%A4%84%E7%90%86%E5%B1%82"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.2.1. Batch Layer(批处理层)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-2-Speed-Layer-%E9%80%9F%E5%BA%A6%E5%A4%84%E7%90%86%E5%B1%82"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2.2. Speed Layer(速度处理层)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-3-Serving-Layer"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.2.3. Serving Layer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">1.3. 流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-%E8%B5%84%E6%96%99"><span class="toc-number">1.4.</span> <span class="toc-text">1.4. 资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-%E7%BB%84%E4%BB%B6%E9%80%89%E5%9E%8B"><span class="toc-number">1.5.</span> <span class="toc-text">1.5. 组件选型</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%AE%9E%E6%97%B6%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">2.实时处理系统架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-1-Flume-%E9%9B%86%E7%BE%A4"><span class="toc-number">2.0.1.</span> <span class="toc-text">2.1.1. Flume 集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-2-Kafka-%E9%9B%86%E7%BE%A4"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.1.2. Kafka 集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-3-Flink-%E9%9B%86%E7%BE%A4"><span class="toc-number">2.0.3.</span> <span class="toc-text">2.1.3. Flink 集群</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E7%A6%BB%E7%BA%BF%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text">3.2. 离线处理系统架构</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Lambda-%E6%9E%B6%E6%9E%84%E4%B8%8D%E8%B6%B3"><span class="toc-number">3.</span> <span class="toc-text">4.Lambda 架构不足</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">无题</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-14T03:09:42.828Z" title="发表于 2020-09-14 11:09:42">2020-09-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-01-05T02:01:11.625Z" title="更新于 2021-01-05 10:01:11">2021-01-05</time></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="1-Lambda-架构"><a href="#1-Lambda-架构" class="headerlink" title="1. Lambda 架构"></a>1. Lambda 架构</h1><h2 id="1-1-简介"><a href="#1-1-简介" class="headerlink" title="1.1. 简介"></a>1.1. 简介</h2><p>Lambda 架构是由 Storm 的作者 Nathan Marz 提出的一个实时大数据处理框架。Lambda 架构是其根据多年进行分布式大数据系统的经验总结提炼而成。Lambda 架构的目标是设计出一个能满足实时大数据系统关键特性的架构，包括有：高容错、低延时和可扩展等。Lambda 架构整合离线计算和实时计算，融合不可变性（Immunability），读写分离和复杂性隔离等一系列架构原则，可集成 Hadoop，Kafka，Storm，Spark，Hbase 等各类大数据组件。</p>
+<p>数据从底层的数据源开始，经过各种各样的格式进入大数据平台，在大数据平台中经过Kafka、Flume等数据组件进行收集，然后分成两条线进行计算。一条线是进入流式计算平台（例如 Storm、Flink或者Spark Streaming），去计算实时的一些指标；另一条线进入批量数据处理离线计算平台（例如Mapreduce、Hive，Spark SQL），去计算T+1的相关业务指标，这些指标需要隔日才能看见。</p>
+<h2 id="1-2-三层架构"><a href="#1-2-三层架构" class="headerlink" title="1.2. 三层架构"></a>1.2. 三层架构</h2><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2020-09-15 上午9.36.06.png" alt="截屏2020-09-15 上午9.36.06" style="zoom:40%;" />
+
+<h3 id="1-2-1-Batch-Layer-批处理层"><a href="#1-2-1-Batch-Layer-批处理层" class="headerlink" title="1.2.1. Batch Layer(批处理层)"></a>1.2.1. Batch Layer(批处理层)</h3><p>在全体数据集上在线运行查询函数得到结果的代价太大，同时处理查询时间过长，导致用户体验不好。如果预先在数据集上计算并保存预计算的结果，查询的时候直接返回预计算的结果，而无需重新进行复制耗时的计算。</p>
+<p>batchview 是一个批处理过程，如采用 Hadoop 或 spark 支持的 map－reduce 方式。采用这种方式计算得到的每个view 都支持再次计算，且每次计算的结果都相同。</p>
+<p>批处理层使用可处理大量数据的分布式处理系统预先计算结果。它通过处理所有的已有历史数据来实现数据的准确性。这意味着它是基于完整的数据集来重新计算的，能够修复任何错误，然后更新现有的数据视图。输出通常存储在只读数据库中，更新则完全取代现有的预先计算好的视图。</p>
+<p>Batch Layer 的功能主要有两点：</p>
+<ol>
+<li>存储数据集</li>
+<li>在数据集上预先计算查询函数，构建查询所对应的 View</li>
+</ol>
+<h3 id="1-2-2-Speed-Layer-速度处理层"><a href="#1-2-2-Speed-Layer-速度处理层" class="headerlink" title="1.2.2. Speed Layer(速度处理层)"></a>1.2.2. Speed Layer(速度处理层)</h3><p>Batch Layer可以很好的处理离线数据，但有很多场景数据不断实时生成，且需要实时查询处理。Speed Layer是用来处理增量的实时数据。</p>
+<p>SpeedLayer 和 BatchLayer 比较类似，对数据进行计算并生成 RealtimeView，其主要的区别在于</p>
+<ol>
+<li>SpeedLayer 处理的数据是最近的增量数据流，BatchLayer 处理的是全体数据集</li>
+<li>Speed<strong>Layer **为了效率，接收到新数据及时更新 Realtime</strong>View<strong>，而 Batch</strong>Layer** 根据全体离线数据直接得到Batch<strong>View</strong>。Speed**Layer **是一种增量计算，而非重新计算（recomputation）。</li>
+<li>Speed<strong>Layer</strong>因为采用增量计算，所以延迟小，而 Batch<strong>Layer</strong> 是全数据集的计算，耗时比较长。</li>
+</ol>
+<p>速度层通过提供最新数据的实时视图来最小化延迟。速度层所生成的数据视图可能不如批处理层最终生成的视图那样准确或完整，但它们几乎在收到数据后立即可用。而当同样的数据在批处理层处理完成后，在速度层的数据就可以被替代掉了。</p>
+<h3 id="1-2-3-Serving-Layer"><a href="#1-2-3-Serving-Layer" class="headerlink" title="1.2.3. Serving Layer"></a>1.2.3. Serving Layer</h3><p>Batch<strong>Layer</strong> 通过对 Master<strong>Dataset **执行查询获得 Batch</strong>View<strong>，</strong>Speed Layer <strong>通过增量计算提供 Realtime</strong>View<strong>。Lambda 架构的 Serving</strong>Layer <strong>用于响应用户的查询请求，合并 BatchView 和 Realtime View 中的结果数据集到最终的数据集。因此，Serving</strong>Layer **的职责包含：</p>
+<ol>
+<li>对 batch<strong>View **和 RealTime</strong>View **的随机访问</li>
+<li>更新 Batch<strong>Veiw **和 RealTime</strong>View**，并负责结合两者的数据，对用户提供统一的接口</li>
+</ol>
+<h2 id="1-3-流程"><a href="#1-3-流程" class="headerlink" title="1.3. 流程"></a>1.3. 流程</h2><p>数据流进入系统后，同时发往 Batch Layer 和 Speed Layer 处理。Batch Layer 以不可变模型离线存储所有数据集，通过在全体数据集上不断重新计算构建查询所对应的 Batch Views。Speed Layer 处理增量的实时数据流，不断更新查询所对应的 Realtime Views。Serving Layer 响应用户的查询请求，合并 Batch View 和 Realtime View 中的结果数据集到最终的数据集。</p>
+<h2 id="1-4-资料"><a href="#1-4-资料" class="headerlink" title="1.4. 资料"></a>1.4. 资料</h2><p>例如广告投放预测这种推荐系统一般都会用到 Lambda 架构。一般能做精准广告投放的公司都会拥有海量用户特征、用户历史浏览记录和网页类型分类这些历史数据的。业界比较流行的做法有在批处理层用 Alternating Least Squares (ALS) 算法，也就是 Collaborative Filtering 协同过滤算法，可以得出与用户特性一致其他用户感兴趣的广告类型，也可以得出和用户感兴趣类型的广告相似的广告，而用 k-means 也可以对客户感兴趣的广告类型进行分类。这里的结果是批处理层的结果。</p>
+<p>在速度层中根据用户的实时浏览网页类型在之前分好类的广告中寻找一些top K的广告出来。最终服务层可以结合速度层的top K广告和批处理层中分类好的点击率高的相似广告，做出选择投放给用户。</p>
+<h2 id="1-5-组件选型"><a href="#1-5-组件选型" class="headerlink" title="1.5. 组件选型"></a>1.5. 组件选型</h2><p>Lambda 架构中各组件在大数据生态系统中和阿里集团的常用组件。</p>
+<p>数据流存储选用不可变日志的分布式系统 Kafka；BatchLayer 数据集的存储选用 Hadoop 的 HDFS；BatchView 的加工采用 MapReduce，Spark；BatchView 数据的存储采用 MySQL（查询少量的最近结果数据）、Hbase（查询大量的历史结果数据）。SpeedLayer 采用增量数据处理 Flink；RealtimeView 增量结果数据集采用内存数据库 Redis。</p>
+<img src="/Users/joker/Library/Application Support/typora-user-images/截屏2020-09-14 下午4.40.45.png" alt="截屏2020-09-14 下午4.40.45" style="zoom:30%;" />
+
+<h1 id="2-实时处理系统架构"><a href="#2-实时处理系统架构" class="headerlink" title="2.实时处理系统架构"></a>2.实时处理系统架构</h1><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2020-09-14 下午4.35.49.png" alt="截屏2020-09-14 下午4.35.49" style="zoom:50%;" />
+
+<p>即从上面的架构中我们可以看出，其由下面的几部分构成：</p>
+<ol>
+<li>Flume 集群</li>
+<li>Kafka 集群</li>
+<li>Flink 集群</li>
+</ol>
+<h3 id="2-1-1-Flume-集群"><a href="#2-1-1-Flume-集群" class="headerlink" title="2.1.1. Flume 集群"></a>2.1.1. Flume 集群</h3><p>Flume 的基本架构是 Agent。它是一个完整的数据收集工具，含有三个核心组件，分别是 Source、Channel、Sink。数据以Event为基本单位经过Source、Channel、Sink，从外部数据源来，向外部的目的地去。</p>
+<h3 id="2-1-2-Kafka-集群"><a href="#2-1-2-Kafka-集群" class="headerlink" title="2.1.2. Kafka 集群"></a>2.1.2. Kafka 集群</h3><p>Kafka 是一个分布式的、可分区的、可复制的消息系统，维护消息队列。</p>
+<p>Kafka 的整体架构非常简单，是显式分布式架构，Producer、Broker 和 Consumer 都可以有多个。Producer，consumer 实现 Kafka 注册的接口，数据从 Producer 发送到 Broker，Broker 承担一个中间缓存和分发的作用。Broker 分发注册到系统中的 Consumer。Broker 的作用类似于缓存，即活跃的数据和离线处理系统之间的缓存。客户端和服务器端的通信，是基于简单、高性能、且与编程语言无关的TCP协议。</p>
+<h3 id="2-1-3-Flink-集群"><a href="#2-1-3-Flink-集群" class="headerlink" title="2.1.3. Flink 集群"></a>2.1.3. Flink 集群</h3><p>Flink 核心是一个流式的数据流执行引擎，其针对数据流的分布式计算提供了数据分布、数据通信以及容错机制等功能。基于流执行引擎，Flink 提供了诸多更高抽象层的 API 以便用户编写分布式任</p>
+<h2 id="3-2-离线处理系统架构"><a href="#3-2-离线处理系统架构" class="headerlink" title="3.2. 离线处理系统架构"></a>3.2. 离线处理系统架构</h2><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2020-09-15 下午3.35.45.png" alt="截屏2020-09-15 下午3.35.45" style="zoom:50%;" />
+
+
+
+<h1 id="4-Lambda-架构不足"><a href="#4-Lambda-架构不足" class="headerlink" title="4.Lambda 架构不足"></a>4.Lambda 架构不足</h1><p>虽然 Lambda 架构使用起来灵活，并且可以适用于很多的应用场景，但在实际应用的时候，Lambda 架构也存在着一些不足，主要表现在它的维护很复杂。</p>
+<p>维护 Lambda 架构的复杂性在于我们要同时维护两套系统架构：批处理层和速度层，在架构中加入批处理层是因为从批处理层得到的结果具有高准确性，而加入速度层是因为它在处理大规模数据时具有低延时性。</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2020/09/14/%E6%95%B0%E6%8D%AE%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84-Lambda/">http://joccer.gitee.io/2020/09/14/%E6%95%B0%E6%8D%AE%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84-Lambda/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2020/09/14/%E6%95%B0%E6%8D%AE%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84-Kappa/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info"></div></div></a></div><div class="next-post pull-right"><a href="/2020/05/25/Cloudera%E5%B9%B3%E5%8F%B0%E6%90%AD%E5%BB%BA/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Cloudera平台搭建</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
