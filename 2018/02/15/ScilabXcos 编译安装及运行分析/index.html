@@ -1,0 +1,350 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scilab 云化改造(1)_Scilab/Xcos概述 | 周晓晨</title><meta name="keywords" content="Scilab 仿真云化改造"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Scilab&#x2F;Xcos 概述Scilab 是由法国国家信息、自动化研究院的科学家们开发的“开放源码”软件。Scilab作为一种科学工程计算软件，其数据类型丰富，可以很方便地实现各种矩阵运算与图形显示，能应用于科学计算、数学建模、信号处理、决策优化、线性、非线性控制等各个方面。 Scilab 最初叫做 Basile，是作为 Meta2 项目的一部分在 INRIA 开发的。更名为 Scilab 以后，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scilab 云化改造(1)_Scilab&#x2F;Xcos概述">
+<meta property="og:url" content="http://joccer.gitee.io/2018/02/15/ScilabXcos%20%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E5%8F%8A%E8%BF%90%E8%A1%8C%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Scilab&#x2F;Xcos 概述Scilab 是由法国国家信息、自动化研究院的科学家们开发的“开放源码”软件。Scilab作为一种科学工程计算软件，其数据类型丰富，可以很方便地实现各种矩阵运算与图形显示，能应用于科学计算、数学建模、信号处理、决策优化、线性、非线性控制等各个方面。 Scilab 最初叫做 Basile，是作为 Meta2 项目的一部分在 INRIA 开发的。更名为 Scilab 以后，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2018-02-14T23:26:12.000Z">
+<meta property="article:modified_time" content="2021-01-19T06:10:22.373Z">
+<meta property="article:author" content="周晓晨">
+<meta property="article:tag" content="Scilab 仿真云化改造">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2018/02/15/ScilabXcos%20%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E5%8F%8A%E8%BF%90%E8%A1%8C%E5%88%86%E6%9E%90/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-01-19 14:10:22'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">92</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Scilab-Xcos-%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">Scilab&#x2F;Xcos 概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Xcos-%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.</span> <span class="toc-text">Xcos 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Scilab-%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0%E5%8F%8A%E6%A8%A1%E5%9D%97%E7%BB%84%E6%88%90"><span class="toc-number">3.</span> <span class="toc-text">Scilab 架构概述及模块组成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A8%A1%E5%9D%97"><span class="toc-number">3.1.</span> <span class="toc-text">核心模块</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E7%B1%BB"><span class="toc-number">3.1.1.</span> <span class="toc-text">功能类</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E7%B1%BB"><span class="toc-number">3.1.1.1.</span> <span class="toc-text">控制类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="toc-number">3.1.1.2.</span> <span class="toc-text">工具类</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E7%B1%BB"><span class="toc-number">3.1.2.</span> <span class="toc-text">算法类</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%AE%97%E6%B3%95%E7%B1%BB"><span class="toc-number">3.1.2.1.</span> <span class="toc-text">基本算法类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E5%A4%8D%E6%9D%82%E7%AE%97%E6%B3%95"><span class="toc-number">3.1.2.2.</span> <span class="toc-text">高级复杂算法</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Scilab-%E6%9E%B6%E6%9E%84%E5%88%86%E6%9E%90"><span class="toc-number"></span> <span class="toc-text">Scilab 架构分析</span></a></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">Scilab 云化改造(1)_Scilab/Xcos概述</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2018-02-14T23:26:12.000Z" title="发表于 2018-02-15 07:26:12">2018-02-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-01-19T06:10:22.373Z" title="更新于 2021-01-19 14:10:22">2021-01-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Scilab/">Scilab</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h2 id="Scilab-Xcos-概述"><a href="#Scilab-Xcos-概述" class="headerlink" title="Scilab/Xcos 概述"></a>Scilab/Xcos 概述</h2><p>Scilab 是由法国国家信息、自动化研究院的科学家们开发的“开放源码”软件。Scilab作为一种科学工程计算软件，其数据类型丰富，可以很方便地实现各种矩阵运算与图形显示，能应用于科学计算、数学建模、信号处理、决策优化、线性、非线性控制等各个方面。</p>
+<p>Scilab 最初叫做 Basile，是作为 Meta2 项目的一部分在 INRIA 开发的。更名为 Scilab 以后，其开发由来自 INRIA Metalau和ENPC的研究人员组成的研究小组继续进行。2004年起，Scilab 的开发由一个国际性组织负责。</p>
+<p>目前有两大类的通用科学软件：进行符号运算的计算机代数系统；进行数值计算和专门为科学应用设计的通用数值系统。自由开源软件 Scilab 就属于第二类。</p>
+<p>Scilab 是一种动态确定对象类型的解释性语言。Scilab 能以二进制的形式在 Unix/Linux 工作站、Windows和Mac OS X等主要平台上运行。用户可以通过源代码编译 Scilab，该过程非常直观。</p>
+<p>Scilab 可以作为一种脚本语言进行算法测试或者数值计算，同时，它也是一种编程语言，标准的Scilab库包含大约2000多种Scilab函数。Scilab语法简单，而且相关专用函数和运算符的使用使得矩阵的计算变得更为简单。因此，Scilab的程序相当紧凑，一般比用C、C++、Java等语言编写的程序短小。</p>
+<p>Scilab主要用于科学计算，极大地方便了线性代数、数值积分、最优化等数值计算。扩展Scilab环境也比较简单，可以利用静态或动态连接库从外部向Scilab中引入新的功能函数，也可以使用Scilab结构体定义新的数据类型，或者为新的数据类型加载标准操作。Scilab的官方网站上有大量的工具箱来扩展它的一些特殊功能。</p>
+<p>Scilab同时提供了大量的可视化函数，如二维图形、三维图形、等高线、参数化绘图和动画等，由这些函数生成的图形能以gif、postscript等多种格式输出。</p>
+<p>Scilab还提供可以满足不同工程与科学需要的工具箱，例如Xcos图形化建模仿真，信号处理工具箱，图与网络工具箱等。</p>
+<h2 id="Xcos-介绍"><a href="#Xcos-介绍" class="headerlink" title="Xcos 介绍"></a>Xcos 介绍</h2><p>Xcos 是 Scilab 的核心组件,是一个图形动态系统建模器和模拟器，在 INRIA，巴黎 Rocquencourt 中心的 Metalau 项目中开发。使用 Xcos，用户可以创建框图来模拟混合动力系统的动态过程，并将模型编译为可执行代码。Xcos可用于信号处理，系统控制，以及研究物理和生物系统。在新的扩展中，允许使用 Modelica 语言生成基于组件的电气和液压电路的模型。</p>
+<h2 id="Scilab-架构概述及模块组成"><a href="#Scilab-架构概述及模块组成" class="headerlink" title="Scilab 架构概述及模块组成"></a>Scilab 架构概述及模块组成</h2><p>Scilab 的模块可分成三大类：核心模块、扩展工具模块、可选模块。本节详细介绍三大类的模块，及各分类的模块的架构层次。对每个模块的详细功能进行了解释说明。</p>
+<p>Scilab 的核心架构思想是每一个功能或者任务都可以分为一个个单独模块（module）。每个模块都执行各自对应的功能和任务，相互尽量不影响，以使得  模块之间相互的耦合性降到最低。在 VS2012 的调试环境中，就可以很清楚的看出 Scilab 是由 142 个模块(其中包括在 Windows下运行所需要的五个单独模块WScilex(程序入口函数)，Dumpexts(运行win7及以上版本的支持模块)，windows_tools(运行dos窗口模式的支持工具模块)，GetWindowsVersion(获取Windows版本信息并配置调试环境模块)，Scilex(Windows下无GUI模式控制模块))组成。</p>
+<p>另外，Scilab 的底层开发语言是 Fortran 语言，早期的图形界面是用tcl/tk语言开发的，再后来为了便于开发，模块中还包括了很多调用Fortran语言代码的C++链接模块（例如core和core_f，Scilab的核心处理代码core_f是由Fortran语言写的，但是为了开发方便也写了调用这些Fortran代码的C++链接代码文件core），此外还有支持之前的tclsci模块（从Scilab源码的支持文件prerequirements-scilab中获取）。以及一些相关模块的管理/引入/缺失警告/单元测试项目模块（例如，graphic模块就包含了graphic_export(图表输出项目)，nographic_export(图表输出缺失警告项目)/graphic_JAVA_tests(图表输出Java单元测试)等），这些相似模块可以合成一类。</p>
+<p>总结以上，Scilab中实际可分析的模块有73个。</p>
+<p>在阅读源码和相关文献资料后，我们将这73个模块分成了<strong>核心模块</strong>，<strong>扩展工具模块</strong>，<strong>可选模块</strong>三大类。</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/Xnip2021-01-19_12-48-29.jpg" alt="Xnip2021-01-19_12-48-29" style="zoom:70%;" />
+
+<h3 id="核心模块"><a href="#核心模块" class="headerlink" title="核心模块"></a>核心模块</h3><p><strong>核心模块</strong>是包含 Scilab 所必需核心源码模块的，删减后会导致 Scilab 不能进行正常工作的，一共有56个</p>
+<p>然后，根据其实现的结果，又分为两大类: 功能类和算法类。</p>
+<h4 id="功能类"><a href="#功能类" class="headerlink" title="功能类"></a>功能类</h4><p>在功能类中根据其职能又细分为两小类: 控制类和工具类。</p>
+<h5 id="控制类"><a href="#控制类" class="headerlink" title="控制类"></a>控制类</h5><p>主要是实现Scilab相关底层与计算机进行交互的功能：</p>
+<ul>
+<li>console</li>
+<li>core</li>
+<li>dynamic_link    </li>
+<li>io</li>
+<li>libjvm </li>
+<li>localization</li>
+<li>mpi</li>
+<li>parallel </li>
+<li>preferences  </li>
+<li>scilab_windows </li>
+</ul>
+<h5 id="工具类"><a href="#工具类" class="headerlink" title="工具类"></a>工具类</h5><p>主要包括了 Scilab 一般操作的相关命令集合：</p>
+<ul>
+<li><p>action_binding  </p>
+<p>事件绑定封装，调用工具</p>
+</li>
+<li><p>api-scilab  </p>
+<p>Scilab 调用的常用接口 api</p>
+</li>
+<li><p>boolean    </p>
+</li>
+<li><p>call_scilab </p>
+</li>
+<li><p>data_structures</p>
+</li>
+<li><p>differential_equations  </p>
+</li>
+<li><p>external_objects </p>
+</li>
+<li><p>fileio  </p>
+</li>
+<li><p>functions  </p>
+</li>
+<li><p>grphic  </p>
+</li>
+<li><p>gui  </p>
+</li>
+<li><p>hdf5  </p>
+</li>
+<li><p>history_brower </p>
+</li>
+<li><p>integer  </p>
+</li>
+<li><p>intersci  </p>
+</li>
+<li><p>Javasci  </p>
+</li>
+<li><p>out_stream   </p>
+</li>
+<li><p>parameters </p>
+</li>
+<li><p>renderer  </p>
+</li>
+<li><p>scinotes  </p>
+</li>
+<li><p>SetupAltas  </p>
+</li>
+<li><p>spreadsheet  </p>
+</li>
+<li><p>string </p>
+</li>
+<li><p>double   </p>
+</li>
+<li><p>time   </p>
+</li>
+<li><p>types  </p>
+</li>
+<li><p>xml </p>
+</li>
+</ul>
+<h4 id="算法类"><a href="#算法类" class="headerlink" title="算法类"></a>算法类</h4><p>基本功能算法和高级复杂算法。</p>
+<h5 id="基本算法类"><a href="#基本算法类" class="headerlink" title="基本算法类"></a>基本算法类</h5><p>包括简单的科学计算方法：</p>
+<ul>
+<li>cacsd   </li>
+<li>dcd_f   </li>
+<li>eispack_f   </li>
+<li>elementary_functions</li>
+<li>interpolation  </li>
+<li>linear_algebra  </li>
+<li>linpack_f  </li>
+<li>polynomialse </li>
+<li>randlib  </li>
+<li>slatec_f  </li>
+<li>slicot_f   </li>
+<li>statistics </li>
+</ul>
+<h5 id="高级复杂算法"><a href="#高级复杂算法" class="headerlink" title="高级复杂算法"></a>高级复杂算法</h5><p>提供了很多优秀的复杂计算方法(可提高计算性能)：</p>
+<ul>
+<li><p>arnoldi  </p>
+</li>
+<li><p>optimization  </p>
+</li>
+<li><p>singnal_processing  </p>
+</li>
+<li><p>special_functions </p>
+</li>
+<li><p>symbolic  </p>
+</li>
+<li><p>umfpack  </p>
+</li>
+<li><p>sparse</p>
+<h1 id="Scilab-架构分析"><a href="#Scilab-架构分析" class="headerlink" title="Scilab 架构分析"></a>Scilab 架构分析</h1></li>
+</ul>
+<p>根据体系结构分层分析，Scilab 的依赖项关系图有如下生成：</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午12.57.23.png" alt="截屏2021-01-19 下午12.57.23" style="zoom:70%;" />
+
+<p>由图可知，一共有 157 个节点，1518 个链接，完整的显示了 Scilab 个项目之间的依赖关系。其中，箭头指向性为一个文件被另一个文件所依赖。</p>
+<p>根据官网提供的一些资料支持，我们将上图简化，生成了下图的简易版依赖关系视图：</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午12.58.20.png" alt="截屏2021-01-19 下午12.58.20" style="zoom:70%;" />
+
+<p>图中共有 23 个节点，88 个链接。此图比较清晰完整的显示了 Scilab 主要模块之间的依赖关系。</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2018/02/15/ScilabXcos%20%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E5%8F%8A%E8%BF%90%E8%A1%8C%E5%88%86%E6%9E%90/">http://joccer.gitee.io/2018/02/15/ScilabXcos%20%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E5%8F%8A%E8%BF%90%E8%A1%8C%E5%88%86%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/">Scilab 仿真云化改造</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/2018/03/25/Xcos%E6%A8%A1%E5%9D%97%E7%BB%93%E6%9E%84/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Scilab 云化改造(2)_XCOS 模块结构</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2018/04/05/Xcos仿真流程分析/" title="Scilab 云化改造(3)_Xcos仿真流程分析"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-04-05</div><div class="title">Scilab 云化改造(3)_Xcos仿真流程分析</div></div></a></div><div><a href="/2018/03/30/Xcos工具箱功能包挂载/" title="Scilab 云化改造(4)_Xcos工具箱功能包挂载"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-03-30</div><div class="title">Scilab 云化改造(4)_Xcos工具箱功能包挂载</div></div></a></div><div><a href="/2018/03/25/Xcos模块结构/" title="Scilab 云化改造(2)_XCOS 模块结构"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-03-25</div><div class="title">Scilab 云化改造(2)_XCOS 模块结构</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scilab 云化改造(3)_Xcos仿真流程分析 | 周晓晨</title><meta name="keywords" content="Scilab 仿真云化改造"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Xcos 是基于 Java 图形界面程序的可视化模拟仿真功能组件。Xcos 的运行必须依赖于 Java 的虚拟机环境。Xcos 的所有可视化的组件和相应控件都是由 Java 代码所编写(包括 Scilab 的可视化界面也都是由 Java 代码编写)。但是 Scilab 的核心代码是由 Fortran 和 C&#x2F;C++ 编写，所以存在 Java 与其他编程语言的交互问题，开发者利用了 JNI 的方式在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scilab 云化改造(3)_Xcos仿真流程分析">
+<meta property="og:url" content="http://joccer.gitee.io/2018/04/05/Xcos%E4%BB%BF%E7%9C%9F%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Xcos 是基于 Java 图形界面程序的可视化模拟仿真功能组件。Xcos 的运行必须依赖于 Java 的虚拟机环境。Xcos 的所有可视化的组件和相应控件都是由 Java 代码所编写(包括 Scilab 的可视化界面也都是由 Java 代码编写)。但是 Scilab 的核心代码是由 Fortran 和 C&#x2F;C++ 编写，所以存在 Java 与其他编程语言的交互问题，开发者利用了 JNI 的方式在">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2018-04-05T04:18:19.000Z">
+<meta property="article:modified_time" content="2021-01-19T06:10:17.688Z">
+<meta property="article:author" content="周晓晨">
+<meta property="article:tag" content="Scilab 仿真云化改造">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2018/04/05/Xcos%E4%BB%BF%E7%9C%9F%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-01-19 14:10:17'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">92</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Xcos-%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E6%8B%9F%E4%BB%BF%E7%9C%9F%E6%B5%81%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">Xcos 模型的模拟仿真流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Xcos-%E7%9A%84%E4%BB%BF%E7%9C%9F%E6%A8%A1%E5%9E%8B%E7%9A%84%E8%A7%A3%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">Xcos 的仿真模型的解析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Xcos-%E7%BC%96%E8%AF%91%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">Xcos 编译器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Xcos-%E4%BB%BF%E7%9C%9F%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">Xcos 仿真过程分析</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">Scilab 云化改造(3)_Xcos仿真流程分析</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2018-04-05T04:18:19.000Z" title="发表于 2018-04-05 12:18:19">2018-04-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-01-19T06:10:17.688Z" title="更新于 2021-01-19 14:10:17">2021-01-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Scilab/">Scilab</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>Xcos 是基于 Java 图形界面程序的可视化模拟仿真功能组件。Xcos 的运行必须依赖于 Java 的虚拟机环境。Xcos 的所有可视化的组件和相应控件都是由 Java 代码所编写(包括 Scilab 的可视化界面也都是由 Java 代码编写)。但是 Scilab 的核心代码是由 Fortran 和 C/C++ 编写，所以存在 Java 与其他编程语言的交互问题，开发者利用了 JNI 的方式在 Java 和其他代码之间进行数据和信息交互的。</p>
+<a id="more"></a>
+
+<p>Xcos 是基于图形界面程序的可视化模拟仿真功能组件</p>
+<p>Scilab 一共有4种工作模式</p>
+<ol>
+<li>API: Scilab 作为API接口供外部程序调用。</li>
+<li>STD: 标准的Scilab模式（包括图形界面和绘制图表功能）。</li>
+<li>NW:以命令行的模式运行Scilab，没有标准的图形界面，但可以进行图表绘制。</li>
+<li>NWNI: 完全以命令行的模式运行Scilab，没有任何图形界面。</li>
+</ol>
+<p>在 Scilab 以 NWNI 和 API 模式运行时，是不能加载 Xcos 模块，即不能运行模拟仿真的功能。</p>
+<h2 id="Xcos-模型的模拟仿真流程"><a href="#Xcos-模型的模拟仿真流程" class="headerlink" title="Xcos 模型的模拟仿真流程"></a>Xcos 模型的模拟仿真流程</h2><p>一个仿真模型的模拟仿真分为以下几个步骤如图所示：</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.27.48.png" alt="截屏2021-01-19 下午1.27.48" style="zoom:70%;" />
+
+<p>在分析过后，我们发现，Xcos 对于仿真模型的基本操作是一致的，即编译，仿真，输出结果的操作流程是一样的。</p>
+<p>下面简单介绍建模过程。在 Xcos 下建模，就是根据已有的模型，在 Xcos 的组件盘中选取合适的模块，在工作区中进行正确的端口连接。</p>
+<p>Xcos是一个可视化的仿真组件，所以，Xcos有自己的文件格式：.xcos/.zcos。.xcos文件可以当做文本文件打开，如图5.4打开其实可以发现，其实.xcos文件就是一个类xml文件，其中包含了当前模型的所有的信息。</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.29.09.png" alt="截屏2021-01-19 下午1.29.09" style="zoom:70%;" />
+
+
+
+<p>.zcos 文件是为了 Xcos 的批处理而做出的特殊文件格式，即，zcos 就是多个 xcos 文件的集合，即相当于一个压缩文件夹的作用。</p>
+<p>xcos文件中已经包含了一个仿真的所有信息。建模过程：从组件盘中向仿真工作区间进行拖拽仿真模块的操作、模块端口连接操作，实质上就是在编写这样的一个xml文件。建模的过程的实质是建立仿真信息的xml文件。</p>
+<p>另外，可以在仿真的建模过程中通过打开菜单栏中的 “查看” 按钮下拉中的“图表浏览器”选项，来实时查看当前建模的组织关系树状图。</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.29.57.png" alt="截屏2021-01-19 下午1.29.57" style="zoom:70%;" />
+
+
+
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.30.37.png" alt="截屏2021-01-19 下午1.30.37" style="zoom:50%;" />
+
+<p>Xcos 是可视化的 Java 代码界面，所以存在如何从 Java 代码与 Scilab 核心层的交互以及在核心层如何实现模拟仿真的。接下来，分两部分说明一个模型是如何成为机器代码去运行的。为简要说明，假设 Scilab 是在 NW 模式下运行的。</p>
+<h2 id="Xcos-的仿真模型的解析"><a href="#Xcos-的仿真模型的解析" class="headerlink" title="Xcos 的仿真模型的解析"></a>Xcos 的仿真模型的解析</h2><p>Xcos 的模型都是一些可视化的控件块，对于这些控件块的操作(比如移动动作，按下编译，运行操作等操作)都在Java代码层进行执行。现单纯的就“编译按钮”进行说明。</p>
+<p>Java 代码将 Xcos 的行为分成了很多类包，比如动作，日志，事件监听等。很明显，按钮是一个控件，而按下按钮是一个事件，这个事件触发后会链接到该控件所绑定的动作上。所以，在xcos的动作类包中找到 “编译” 动作。</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.34.46.png" alt="截屏2021-01-19 下午1.34.46" style="zoom:50%;" />
+
+
+
+<p>打开所找到的 Java 源文件，找到动作执行的方法 actionPerformed 中，Java 通过 JNI 的方式向 Scilab 发送了一条Scilab 语言类型的命令。</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.35.28.png" alt="截屏2021-01-19 下午1.35.28" style="zoom:50%;" />
+
+<p>现在，Scilab 收到了这条消息，现在回到 Scilab 的 C/C++，Fortran 源代码进行分析。</p>
+<p>Scilab 收到这条发送到控制台的指令后要进行解析，将它进行分解，然后在 Scilab 的动态库当中寻找合适的代码去解析它，执行它。大致流程如图5.9所示。</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.36.51.png" alt="截屏2021-01-19 下午1.36.51" style="zoom:50%;" />
+
+<p>针对这条”编译指令” 首先控制台收到了 Java 程序发来的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cpr = xcos_compile(scs_m)；</span><br></pre></td></tr></table></figure>
+
+<p>这是一条在控制台的Sci语言的命令。</p>
+<p>在控制台会有事件监听程序在运行，收到这条指令后，Scilab会在控制台运行相应的事件响应函数GetCommandLine()调用getCmdLine()获取在控制台的字符流，然后通过bexec()将Scilab语言解析成所需参数，然后调用相应的函数进行运算执行。实际上，最后这条指令的结果是将scs_m中所含的编译信息储存到了变量cpr中。</p>
+<blockquote>
+<p>注：在 Scilab 中是通过每个模块函数的 ID 并利用 callFunctionFromGateway() 获取所需具体函数的位置并执行调用，函数具体 ID 在每个模块的 sci_gateway 文件夹下的 xxx_gateway.xml 文件下可查。</p>
+</blockquote>
+<p>至此，已经完整分析了从 Xcos 中是怎么与控制台交互信息以及如何让控制台进行对 Sci 语言指令响应的过程。下面，我们针对仿真过程在 Sci 中是如何运作的。</p>
+<h2 id="Xcos-编译器"><a href="#Xcos-编译器" class="headerlink" title="Xcos 编译器"></a>Xcos 编译器</h2><p>Xcos 的编译器其实就是将 .xcos 文件解析成需要的仿真信息，就目前来看，其实转化成 Sci 语言就是通过如下 3 条指令进行的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">importXcosDiagram()</span><br><span class="line">cpr = xcos_compile(scs_m)</span><br><span class="line">xcos_simulate(scs_m, <span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+
+<p>importXcosDiagram() 函数是将.xcos文件中的所有模型的信息储存到变量scs_m中，以供编译和模拟仿真执行。</p>
+<p>xcos_compile(scs_m) 函数是检查模型链接中的错误以及将变量 scs_m 中所包含的信息转化成仿真执行的所需要的信息，包括仿真调度表，解算器以及各种模型仿真信息，并将信息储存入 <code>%cpr</code> 变量中。关于 <code>%cpr</code> 中调度表的具体信息可以查看《Scilab/Scicos在建模与仿真中的应用》一书的附录 A.2 章节详细介绍。</p>
+<p>xcos_simulate(scs_m, 4) 函数是将模型进行仿真的的起始指令，其中隐含调用了 <code>xcos_compile()</code> 函数，在遵循 <code>%cpr</code> 的调度表的情况下进行对模拟仿真的执行并求解结果。</p>
+<h2 id="Xcos-仿真过程分析"><a href="#Xcos-仿真过程分析" class="headerlink" title="Xcos 仿真过程分析"></a>Xcos 仿真过程分析</h2><img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.40.44.png" alt="截屏2021-01-19 下午1.40.44" style="zoom:50%;" /></div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2018/04/05/Xcos%E4%BB%BF%E7%9C%9F%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">http://joccer.gitee.io/2018/04/05/Xcos%E4%BB%BF%E7%9C%9F%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/">Scilab 仿真云化改造</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/02/12/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka(2)%EF%BC%9A%E7%94%9F%E4%BA%A7%E8%80%85/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">消息系统-Kafka(2)：生产者</div></div></a></div><div class="next-post pull-right"><a href="/2018/03/30/Xcos%E5%B7%A5%E5%85%B7%E7%AE%B1%E5%8A%9F%E8%83%BD%E5%8C%85%E6%8C%82%E8%BD%BD/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Scilab 云化改造(4)_Xcos工具箱功能包挂载</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2018/02/15/ScilabXcos 编译安装及运行分析/" title="Scilab 云化改造(1)_Scilab/Xcos概述"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-02-15</div><div class="title">Scilab 云化改造(1)_Scilab/Xcos概述</div></div></a></div><div><a href="/2018/03/30/Xcos工具箱功能包挂载/" title="Scilab 云化改造(4)_Xcos工具箱功能包挂载"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-03-30</div><div class="title">Scilab 云化改造(4)_Xcos工具箱功能包挂载</div></div></a></div><div><a href="/2018/03/25/Xcos模块结构/" title="Scilab 云化改造(2)_XCOS 模块结构"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-03-25</div><div class="title">Scilab 云化改造(2)_XCOS 模块结构</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

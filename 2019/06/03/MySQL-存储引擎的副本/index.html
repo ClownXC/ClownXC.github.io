@@ -1,0 +1,317 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL 存储引擎 | 周晓晨</title><meta name="keywords" content="数据库"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="数据库引擎简单来说就是一个”数据库发动机”。当你访问数据库时，不管是手工访问，还是程序访问，都不是直接读写数据库文件，而是通过数据库引擎去访问数据库文件。以关系型数据库为例，你发 SQL 语句给数据库引擎，数据库引擎解释 SQL 语句，提取出你需要的数据返回给你。因此，对访问者来说，数据库引擎就是SQL语句的解释器。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL 存储引擎">
+<meta property="og:url" content="http://joccer.gitee.io/2019/06/03/MySQL-%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E7%9A%84%E5%89%AF%E6%9C%AC/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="数据库引擎简单来说就是一个”数据库发动机”。当你访问数据库时，不管是手工访问，还是程序访问，都不是直接读写数据库文件，而是通过数据库引擎去访问数据库文件。以关系型数据库为例，你发 SQL 语句给数据库引擎，数据库引擎解释 SQL 语句，提取出你需要的数据返回给你。因此，对访问者来说，数据库引擎就是SQL语句的解释器。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-06-03T15:17:32.000Z">
+<meta property="article:modified_time" content="2020-04-27T14:25:49.000Z">
+<meta property="article:author" content="周晓晨">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2019/06/03/MySQL-%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E7%9A%84%E5%89%AF%E6%9C%AC/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-04-27 22:25:49'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">92</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">简介</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MyISAM"><span class="toc-number"></span> <span class="toc-text">MyISAM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MyISAM-%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8"><span class="toc-number">0.1.</span> <span class="toc-text">MyISAM 数据存储</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84"><span class="toc-number">0.1.1.</span> <span class="toc-text">存储结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MyISAM-%E7%89%B9%E6%80%A7"><span class="toc-number">0.2.</span> <span class="toc-text">MyISAM 特性</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B9%B6%E5%8F%91%E6%80%A7%E5%92%8C%E9%94%81%E7%BA%A7%E5%88%AB"><span class="toc-number">0.2.1.</span> <span class="toc-text">并发性和锁级别</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A1%A8%E7%9A%84%E6%8D%9F%E5%9D%8F%E5%92%8C%E4%BF%AE%E5%A4%8D"><span class="toc-number">0.2.2.</span> <span class="toc-text">表的损坏和修复</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MyISAM-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">0.3.</span> <span class="toc-text">MyISAM 适用场景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#InnoDB"><span class="toc-number"></span> <span class="toc-text">InnoDB</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8"><span class="toc-number">0.1.</span> <span class="toc-text">数据存储</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84-1"><span class="toc-number">0.1.1.</span> <span class="toc-text">存储结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">0.2.</span> <span class="toc-text">适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8C%BA%E5%88%AB"><span class="toc-number">1.</span> <span class="toc-text">区别</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">MySQL 存储引擎</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-06-03T15:17:32.000Z" title="发表于 2019-06-03 23:17:32">2019-06-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-04-27T14:25:49.000Z" title="更新于 2020-04-27 22:25:49">2020-04-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>数据库引擎简单来说就是一个”数据库发动机”。当你访问数据库时，不管是手工访问，还是程序访问，都不是直接读写数据库文件，而是通过数据库引擎去访问数据库文件。以关系型数据库为例，你发 SQL 语句给数据库引擎，数据库引擎解释 SQL 语句，提取出你需要的数据返回给你。因此，对访问者来说，数据库引擎就是SQL语句的解释器。</p>
+<a id="more"></a>
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>正式来说，数据库引擎是用于存储、处理和保护数据的核心服务。利用数据库引擎可以控制访问权限并快速处理事务，从而满足企业内大多数需要处理大量数据的应用程序的要求，这包括创建用于存储数据的表和用于查看、管理和保护数据安全的数据库对象(如索引、视图和存储过程)。存储数据的文件有不同的类型，每种文件类型对应各自不同的处理机制：比如处理文本用 txt 类型，处理表格用 excel，处理图片用 png 等数据库中的表也应该有不同的类型，表的类型不同，会对应 MySQL 不同的存取机制。</p>
+<p>在 Oracle 和 SQL Server 等数据库中只有一种存储引擎，所有数据存储管理机制都是一样的。而 MySQL 数据库支持很多存储引擎，包括MyISAM、InnoDB 等，其中 InnoDB 和 BDB 支持事务安全。它还支持一些第三方的存储引擎。用户可以根据不同的需求为数据表选择不同的存储引擎，用户也可以根据自己的需要编写自己的存储引擎。用户可以根据应用的需求选择如何来存储数据、索引、是否使用事务等。选择合适的存储引擎往往能够有效的提高数据库的性能和数据的访问效率，另外一个数据库中的多个表可以使用不同引擎的组合以满足各种性能和实际需求。</p>
+<p>利用 <strong>show engines</strong>; 可以查看当前版本数据库支持的存储引擎</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show engines;</span><br><span class="line">+----------+---------+----------------------------------+--------------+------+------------+</span><br><span class="line">| Engine             | Support | Comment                                                     | Transactions | XA   | Savepoints |</span><br><span class="line">+----------+---------+----------------------------------+--------------+------+------------+</span><br><span class="line">| InnoDB             | DEFAULT | Supports transactions, row-level locking, and foreign keys     | YES          | YES  | YES        |</span><br><span class="line">| MRG_MYISAM         | YES     | Collection of identical MyISAM tables                          | NO           | NO   | NO         |</span><br><span class="line">| MEMORY             | YES     | Hash based, stored <span class="keyword">in</span> memory, useful <span class="keyword">for</span> temporary tables      | NO           | NO   | NO         |</span><br><span class="line">| BLACKHOLE          | YES     | /dev/null storage engine (anything you write to it disappears) | NO           | NO   | NO         |</span><br><span class="line">| MyISAM             | YES     | MyISAM storage engine                                          | NO           | NO   | NO         |</span><br><span class="line">| CSV                | YES     | CSV storage engine                                             | NO           | NO   | NO         |</span><br><span class="line">| ARCHIVE            | YES     | Archive storage engine                                         | NO           | NO   | NO         |</span><br><span class="line">| PERFORMANCE_SCHEMA | YES     | Performance Schema                                             | NO           | NO   | NO         |</span><br><span class="line">| FEDERATED          | NO      | Federated MySQL storage engine                                 | NULL         | NULL | NULL       |</span><br><span class="line">+--------------------+---------+----------------------------------------------------------------+--------------+------+------------+</span><br><span class="line">9 rows <span class="keyword">in</span> <span class="built_in">set</span> (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<h1 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h1><h3 id="MyISAM-数据存储"><a href="#MyISAM-数据存储" class="headerlink" title="MyISAM 数据存储"></a>MyISAM 数据存储</h3><h4 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h4><p>MyISAM 会将表数据存储在两个文件中：数据文件和索引文件，分别会以 .MYD 和 .MYI 为扩展名。MyISAM 表可以包含动态或者静态行。 MySQL 会根据表的定义来决定采用何种格式。 MyISAM 表可以存储的行记录数，一般受限于可用的磁盘空间，或者操作系统中单个文件的最大尺寸。<br>.frm是描述了数据表的结构</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@0440a971febb:/var/lib/mysql/test<span class="comment"># ls</span></span><br><span class="line">book.frm  book.ibd	db.opt	person.MYD  person.MYI	person.frm  reader.frm	reader.ibd</span><br></pre></td></tr></table></figure>
+
+<h3 id="MyISAM-特性"><a href="#MyISAM-特性" class="headerlink" title="MyISAM 特性"></a>MyISAM 特性</h3><h4 id="并发性和锁级别"><a href="#并发性和锁级别" class="headerlink" title="并发性和锁级别"></a>并发性和锁级别</h4><p>使用表级锁，当对表中数据做修改时，会对整个表的数据进行加锁，在读取数据时候，也需要对表中的数据加共享锁，所以对读写混合的操作并发性并不是太好。MyISAM 的读写锁调度是写优先，这也是 MyISAM 不适合做以数据写入为主的数据表引擎，因为在写锁后，其他线程不能做任何操作，大量的更新操作会使查询很难得到锁，从而造成永远阻塞。</p>
+<h4 id="表的损坏和修复"><a href="#表的损坏和修复" class="headerlink" title="表的损坏和修复"></a>表的损坏和修复</h4><p>MyISAM 支持对任意意外关闭所损坏的表的检查和修复，这里的修复并不是通过事物务来修复的，有可能造成数据丢失</p>
+<ul>
+<li>如果mysqld已经宕掉，且无法启动，那么可以通过 mysiamchk 工具来进行修复。此工具在mysqld 服务没有启动时才可以使用。该工具可以检查并分析修复MyISAM表。</li>
+<li>如果 mysqld 仍在运行，或者可以重新启动，那么可以通过 mysqlcheck 工具来进行修复。或者直接通过 mysql 的内置修复SQL 语句来修复：CHECK TABLE，REPAIR TABLE ，ANALYSE TABLE，OPTIMIZE TABLE。这两种方法可以同样达到对表的修复作用。 以上两种方式各有应用场景。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show create table person;</span><br><span class="line">+<span class="comment">--------+---------------------------------------------------------------------------+</span></span><br><span class="line">| Table  | <span class="keyword">Create</span> <span class="keyword">Table</span>                                                              |</span><br><span class="line">+<span class="comment">--------+---------------------------------------------------------------------------+</span></span><br><span class="line">| person | <span class="keyword">CREATE</span> <span class="keyword">TABLE</span> person (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="keyword">name</span> <span class="built_in">varchar</span>(<span class="number">30</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  Age <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="keyword">id</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=MyISAM <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 |</span><br><span class="line">+<span class="comment">--------+---------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; check table person;</span><br><span class="line">+<span class="comment">-------------+-------+----------+----------+</span></span><br><span class="line">| Table       | Op    | Msg_type | Msg_text |</span><br><span class="line">+<span class="comment">-------------+-------+----------+----------+</span></span><br><span class="line">| test.person | <span class="keyword">check</span> | <span class="keyword">status</span>   | OK       |</span><br><span class="line">+<span class="comment">-------------+-------+----------+----------+</span></span><br><span class="line"><span class="number">1</span> <span class="keyword">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">repair</span> <span class="keyword">table</span> person;</span><br><span class="line">+<span class="comment">-------------+--------+----------+----------+</span></span><br><span class="line">| Table       | Op     | Msg_type | Msg_text |</span><br><span class="line">+<span class="comment">-------------+--------+----------+----------+</span></span><br><span class="line">| test.person | <span class="keyword">repair</span> | <span class="keyword">status</span>   | OK       |</span><br><span class="line">+<span class="comment">-------------+--------+----------+----------+</span></span><br><span class="line"><span class="number">1</span> <span class="keyword">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.01</span> sec) </span><br></pre></td></tr></table></figure>
+<h3 id="MyISAM-适用场景"><a href="#MyISAM-适用场景" class="headerlink" title="MyISAM 适用场景"></a>MyISAM 适用场景</h3><ul>
+<li>如果应用中需要执行大量的SELECT查询，可以考虑 MyISAM。</li>
+</ul>
+<h1 id="InnoDB"><a href="#InnoDB" class="headerlink" title="InnoDB"></a>InnoDB</h1><p>InnoDB 存储引擎: 主要面向 OLTP(Online Transaction Processing，在线事务处理) 方面的应用，是第一个完整支持 ACID 事务的存储引擎。</p>
+<h3 id="数据存储"><a href="#数据存储" class="headerlink" title="数据存储"></a>数据存储</h3><h4 id="存储结构-1"><a href="#存储结构-1" class="headerlink" title="存储结构"></a>存储结构</h4><p>所有的数据表都保存在同一个数据文件中（也可能是多个文件，或者是独立的表空间文件）MySQL 使用 InnoDB 存储表时，会将表的定义和数据索引等信息分开存储，其中前者存储在 .frm 文件中，后者存储在 .ibd 文件中</p>
+<ol>
+<li>.frm<br> 无论在 MySQL 中选择了哪个存储引擎，所有的 MySQL 表都会在硬盘上创建一个 .frm 文件用来描述表的格式或者说定义； .frm 文件的格式在不同的平台上都是相同的。</li>
+<li>.ibd 文件<br> .ibd 文件就是每一个表独有的表空间，文件存储了当前表的数据和相关的索引数据。</li>
+</ol>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><ul>
+<li>适用于更新密集型，支持事务，自动灾难恢复，行锁，外键</li>
+<li>InnoDB 为 MySQL 表提供了ACID事务支持、系统崩溃修复能力和多版本并发控制（即MVCC Multi-Version Concurrency Control）的行锁</li>
+<li>支持自增长列（auto_increment）,自增长列的值不能为空，如果在使用的时候为空则自动从现有值开始增值。</li>
+<li>支持外键</li>
+</ul>
+<h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p><strong>MyISAM 是 MySQL 5.5 版本之前的默认数据库引擎。 虽然性能极佳，而且提供了大量的特性，包括全文索引、压缩、空间函数等，但 MyISAM 不支持事务和行级锁，而且最大的缺陷就是崩溃后无法安全恢复。不过，5.5版本之后，MySQL引入了InnoDB（事务性数据库引擎），MySQL 5.5版本后默认的存储引擎为InnoDB。</strong></p>
+<ol>
+<li><p>InnoDB 是第一个完整支持 ACID 事务的存储引擎, MyISAM 不支持</p>
+</li>
+<li><p>InnoDB 支持外键，MyISAM 不支持</p>
+</li>
+<li><p>MyISAM 只有表级锁，不会死锁，并发性能差；而 InnoDB 支持行级锁和表级锁,默认为行级锁，会死锁，并发性能好。</p>
+</li>
+<li><p>InnoDB 必须有主键，没有指定就为每一行数据生成不可见的 ROWID 列作为主键，MyISAM 可以没有主键</p>
+</li>
+<li><p>MyISAM 内置了一个计数器来存储表的行数。执行 select count(*) 时直接从计数器中读取，速度非常快。而 InnoDB 不保存这些信息。</p>
+<p><strong>InnoDB：</strong> 没有保存表的总行数，如果使用select count(*) from table；就会遍历整个表，消耗相当大，但是在加了 wehre 条件后，MyISAM 和 innodb 处理的方式都一样。</p>
+</li>
+<li><p>InnoDB 是聚集索引，使用 B+Tree 作为索引结构，数据文件是和（主键）索引绑在一起的（表数据文件本身就是按 B+Tree 组织的一个索引结构），必须要有主键，通过主键索引效率很高。但是辅助索引需要两次查询，先查询到主键，然后再通过主键查询到数据。因此，主键不应该过大，因为主键太大，其他索引也都会很大。</p>
+</li>
+<li><p>如果执行大量的 SELECT，MyISAM 是更好的选择。如果你的数据执行大量的 INSERT 或 UPDATE，出于性能方面的考虑，应该使用 InnoDB 表</p>
+</li>
+<li><p>MyISAM：可被压缩，存储空间小。支持三种不同的存储格式：静态表、动态表、压缩表。</p>
+<p>Innodb：需要更多的内存和存储，它会在主内存中建立专用的缓冲池用于高速缓冲数据和索引。</p>
+</li>
+<li><p>MyISAM ：每个表在磁盘上存储成三个文件。</p>
+<ul>
+<li><p><code>.frm</code> 文件存储表定义</p>
+</li>
+<li><p><code>.MYD</code> 是数据文件的扩展名</p>
+</li>
+<li><p><code>.MYI</code> 是索引文件的扩展名。</p>
+</li>
+</ul>
+<p>Innodb 有自己的表空间的概念，表中的数据是存储在表空间之中的，具体存储在什么样的表空间中呢？是由 innodb_file_per_table 这个参数决定的，</p>
+<p>如果这个参数为ON:独立表空间，存储的表名为(表名.ibd),</p>
+<p>如果参数为OFF:系统表空间(系统的共享表空间),存储的表名为(ibdataX(X为数字))) </p>
+<pre><code>命令：show variables like &#39;innodb_file_per_table&#39;;       
+查看 mysql 数据库的存放位置: show global variables like &quot;%datadir%&quot;;
+接下来我们创建一个表来看一下
+create table myinnodb(id int,c1 varchar(100)) engine=&#39;innodb&#39;;            
+看一下文件系统是如何存储的，进入到数据库存放的位置，ls -lh myinnodb*            
+可以看到有 myinnodb.frm 和 myinnodb.ibd 两个文件，frm文件时记录表结构的，ibd 就是 innodb 表实际存储的位置       
+接着把 innodb_file_per_table 参数设置为 off,命令为 set global innodb_file_per_table=off;            
+show variables like &#39;innodb_file_per_table&#39;; 用这个命令检查是否关闭了            
+再创建一个表：create table myinnodb_g(id int,c1 varchar(100)) engine=&#39;innodb&#39;;            
+查看存储的位置，可以看到只有一个myinnodb_g.frm的文件，不存在ibd文件，也就是说它的数据存储在系统共享表的空间 存储在ibdata1中</code></pre>
+</li>
+</ol>
+<ol>
+<li><p><strong>全文索引</strong></p>
+<p><strong>MyISAM：</strong>支持 FULLTEXT类型的全文索引</p>
+<p><strong>InnoDB：</strong>不支持FULLTEXT类型的全文索引，但是innodb可以使用sphinx插件支持全文索引，并且效果更好。</p>
+</li>
+<li><p><strong>事务支持</strong></p>
+<p><strong>MyISAM：</strong>强调的是性能，每次查询具有原子性,其执行数度比 InnoDB 类型更快，但是不提供事务支持。</p>
+<p><strong>InnoDB：</strong>提供事务支持事务，外部键等高级数据库功能。 具有事务(commit)、回滚(rollback)和崩溃修复能力(crash recovery capabilities)的事务安全(transaction-safe (ACID compliant))型表。</p>
+</li>
+</ol>
+<p><strong>可移植性、备份及恢复</strong></p>
+<p><strong>MyISAM：</strong>数据是以文件的形式存储，所以在跨平台的数据转移中会很方便。在备份和恢复时可单独针对某个表进行操作。</p>
+<p><strong>InnoDB：</strong>免费的方案可以是拷贝数据文件、备份 binlog，或者用 mysqldump，在数据量达到几十G的时候就相对痛苦了。</p>
+<p><strong>数据和索引的组织方式不同。</strong></p>
+<p>MyISAM 将索引和数据分开进行存储。索引存放在 <code>.MYI</code> 文件中，数据存放在 <code>.MYD</code> 文件中。索引中保存了相应数据的地址。以 <code>表名+.MYI</code> 文件分别保存。 InnoDB 的主键索引树的叶子节点保存主键和相应的数据。其它的索引树的叶子节点保存的是主键。也正是因为采取了这种存储方式，InnoDB 才强制要求每张表都要有主键。</p>
+<p><strong>对 AUTO_INCREMENT 的处理方式不一样。</strong></p>
+<p>如果将某个字段设置为 INCREMENT，InnoDB 中规定必须包含只有该字段的索引。但是在 MyISAM 中，也可以将该字段和其他字段一起建立联合索引。</p>
+<p><strong>CURD 操作 MyISAM</strong></p>
+<p>如果执行大量的SELECT，MyISAM 是更好的选择。 InnoDB：如果你的数据执行大量的 INSERT 或 UPDATE，出于性能方面的考虑，应该使用 InnoDB 表。DELETE 从性能上InnoDB更优，但DELETE FROM table时，InnoDB不会重新建立表，而是一行一行的删除，在innodb上如果要清空保存有大量数据的表，最好使用truncate table这个命令。</p>
+<p><strong>锁的粒度不同。</strong></p>
+<p>MyISAM 仅支持表锁。每次操作锁住整张表。这种处理方式一方面加锁的开销比较小，且不会出现死锁，但另一方面并发性能较差。InnoDB支持行锁。每次操作锁住一行数据，一方面行级锁在每次获取锁和释放锁的操作需要消耗比表锁更多的资源，速度较慢，且可能发生死锁，但是另一方面由于锁的粒度较小，发生锁冲突的概率也比较低，并发性较好。此外，即使是使用了InnoDB存储引擎，但如果MySQL执行一条sql语句时不能确定要扫描的范围，也会锁住整张表。</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2019/06/03/MySQL-%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E7%9A%84%E5%89%AF%E6%9C%AC/">http://joccer.gitee.io/2019/06/03/MySQL-%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E7%9A%84%E5%89%AF%E6%9C%AC/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/06/03/MySQL-%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL 存储引擎</div></div></a></div><div class="next-post pull-right"><a href="/2019/06/03/MySQL-%E7%B4%A2%E5%BC%95/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL 索引</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2019/06/03/MySQL-存储引擎/" title="MySQL 存储引擎"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-06-03</div><div class="title">MySQL 存储引擎</div></div></a></div><div><a href="/2019/11/03/一条SQL查询语句是如何执行的？/" title="一条 SQL 查询语句是如何执行的？"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-11-03</div><div class="title">一条 SQL 查询语句是如何执行的？</div></div></a></div><div><a href="/2019/06/05/MySQL-数据查询优化-1-：理论基础/" title="MySQL 数据查询优化(1):理论基础"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-06-05</div><div class="title">MySQL 数据查询优化(1):理论基础</div></div></a></div><div><a href="/2019/06/03/MySQL-索引/" title="MySQL 索引"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-06-03</div><div class="title">MySQL 索引</div></div></a></div><div><a href="/2019/06/02/MySQL-事务/" title="MySQL 事务"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-06-02</div><div class="title">MySQL 事务</div></div></a></div><div><a href="/2019/02/22/MySQL-锁/" title="MySQL 锁"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-02-22</div><div class="title">MySQL 锁</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

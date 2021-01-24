@@ -1,0 +1,534 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scilab 云化改造(2)_XCOS 模块结构 | 周晓晨</title><meta name="keywords" content="Scilab 仿真云化改造"><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Scilab 在 Windows 下是以 bin 文件夹中 WScilex.exe 开始的，然后在进行初始化配置（包括选择模式、绘制界面、绑定相关按钮功能）后，调用相关的动态库（dll文件&#x2F;由编译过程生成）完成所有的任务和功能。在 Linux 下运行亦相仿，启动文件为 bin 文件夹目录下的名为 scilab 的二进制可执行文件脚本，调用的动态库文件为.so文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scilab 云化改造(2)_XCOS 模块结构">
+<meta property="og:url" content="http://joccer.gitee.io/2018/03/25/Xcos%E6%A8%A1%E5%9D%97%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Scilab 在 Windows 下是以 bin 文件夹中 WScilex.exe 开始的，然后在进行初始化配置（包括选择模式、绘制界面、绑定相关按钮功能）后，调用相关的动态库（dll文件&#x2F;由编译过程生成）完成所有的任务和功能。在 Linux 下运行亦相仿，启动文件为 bin 文件夹目录下的名为 scilab 的二进制可执行文件脚本，调用的动态库文件为.so文件">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2018-03-25T15:28:13.000Z">
+<meta property="article:modified_time" content="2021-01-19T06:09:53.768Z">
+<meta property="article:author" content="周晓晨">
+<meta property="article:tag" content="Scilab 仿真云化改造">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2018/03/25/Xcos%E6%A8%A1%E5%9D%97%E7%BB%93%E6%9E%84/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-01-19 14:09:53'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">92</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#XCOS-%E6%A8%A1%E5%9D%97%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">XCOS 模块结构</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">Scilab 云化改造(2)_XCOS 模块结构</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2018-03-25T15:28:13.000Z" title="发表于 2018-03-25 23:28:13">2018-03-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-01-19T06:09:53.768Z" title="更新于 2021-01-19 14:09:53">2021-01-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Scilab/">Scilab</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>Scilab 在 Windows 下是以 bin 文件夹中 WScilex.exe 开始的，然后在进行初始化配置（包括选择模式、绘制界面、绑定相关按钮功能）后，调用相关的动态库（dll文件/由编译过程生成）完成所有的任务和功能。在 Linux 下运行亦相仿，启动文件为 bin 文件夹目录下的名为 scilab 的二进制可执行文件脚本，调用的动态库文件为.so文件</p>
+<a id="more"></a>
+
+
+
+<h2 id="XCOS-模块结构"><a href="#XCOS-模块结构" class="headerlink" title="XCOS 模块结构"></a>XCOS 模块结构</h2><p>按照 Scilab 官网上的一篇文章（<a target="_blank" rel="noopener" href="https://wiki.scilab.org/ScilabWithinEclipse%EF%BC%89%E6%8F%90%E4%BE%9B%E7%9A%84%E6%AD%A5%E9%AA%A4%E8%BF%9B%E8%A1%8C%E5%90%8E%E7%BB%AD%E8%B0%83%E8%AF%95%E3%80%82%E4%B8%80%E5%85%B1%E5%AF%BC%E5%85%A5%E4%BA%8623%E4%B8%AA%E6%A8%A1%E5%9D%97%EF%BC%8C%E5%85%B6%E4%B8%AD">https://wiki.scilab.org/ScilabWithinEclipse）提供的步骤进行后续调试。一共导入了23个模块，其中</a> Xcos 需要 Scilab 中 10 个模块的依赖，分别是 <code>commons</code>、<code>localization</code>、<code>graph</code>、<code>types</code>、<code>gui</code>、<code>action_bindings</code>、<code>core</code>、<code>helptools</code>、<code>javasci</code> 及 <code>xcos</code></p>
+<p>Scilab 中 Xcos 的依赖模块架构模型进行分解</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/截屏2021-01-19 下午1.18.11.png" alt="截屏2021-01-19 下午1.18.11" style="zoom:50%;" />
+
+<p>Scilab 中 Xcos 的依赖块有 10 个</p>
+<p>**Model **类下有5个，分别是：</p>
+<ol>
+<li><code>commons</code>：软件运行过程时的一些相关[工具、接口]；</li>
+<li><code>localization</code>：软件默认初始化相关参数；</li>
+<li><code>graph</code>：软件运行过程中所生成，应用的图像，图片，图形；</li>
+<li><code>types</code>：软件运行过程中的一些变量数据[enum，boolean，list，string等]；</li>
+<li><code>xcos</code>：Xcos运行过程中的关键包，包含Xcos相关方法，接口，默认参数等。</li>
+</ol>
+<p>**View **类下只有1个：</p>
+<p><code>gui</code>：实现人机交互的应用界面。 </p>
+<p>**Controller **类下有4个，分别是：</p>
+<ol>
+<li><p><code>action_bindings</code>：为执行动作提供反馈或者接口；</p>
+</li>
+<li><p><code>core</code>：实现控制台指令和控制命令；</p>
+</li>
+<li><p><code>helptools</code>：链接到帮助文档，在线帮助，说明文档；</p>
+</li>
+<li><p><code>javasci</code>：调用Scilab，Sciab的相关操作及接口。</p>
+</li>
+</ol>
+<p>xcos 模块是 Xcos 运行过程中的关键模块，Xcos 运行过程中的操作是由 xcos 模块的 java 源代码编译后实现的。通过把 Scilab 的 java 源代码导入到 eclipse，在 eclipse 的 package presentation 上选择用 Hierarchical 显示，即层次关系显示，就可以清楚地看到 xcos 模块的 java 源代码是由 14 个不同的子模块组成的。</p>
+<p>这 14 个子模块是由 11 个大类及 3 个java文件组成的，分别是：<code>actions</code>、<code>block</code>、<code>configuration</code>、<code>graph</code>、<code>io</code>、<code>link</code>、<code>modelica</code>、<code>palette</code>、<code>port</code>、<code>preferences</code>、<code>utils</code>、<code>ViewPortTab.java</code>、<code>Xcos.java</code>、<code>XcosTab.java</code>。每个大类下又有若干个 <code>java</code> 文件。</p>
+<p>xcos 模块的结构图如图所示：</p>
+<img src="/Users/joker/Documents/chen_blog/source/images/clip_image004.png" alt="img" style="zoom:100%;" />
+
+<p>xcos 模块详细层次目录及各 java 文件的说明如下：</p>
+<ul>
+<li>Java 平台核心模块存放目录<ul>
+<li>actions Xcos 菜单动作<ul>
+<li>dialog 对话信息管理<ul>
+<li>DebugLevelDialog.java 调试等级对话日志信息</li>
+<li>SetContextDialog.java 设置关联数据对话日志信息</li>
+<li>SetupDialog.java 仿真设置对话日志信息</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>​       1.1.2—AboutXcosAction.java Xcos的关于组件的生成及显示动作</p>
+<p>​             —CloseAction.java 使用管理权限行使关闭组件动作指令</p>
+<p>​             —CompileAction.java xcos的编译动作指令</p>
+<p>​             —DebugLevelAction.java 调试等级指令动作响应</p>
+<p>​             —DiagramBackgroundAction.java 图表背景颜色设置动作</p>
+<p>​            —DumpAction.java 组件倾斜动作</p>
+<p>—EditFromatAction.java 组件参数设置动作</p>
+<p>—ExportAction.java 结果导出动作(当前组件仿真)</p>
+<p>—ExportAllAction.java 结果导出动作(所有组件仿真)</p>
+<p>—ExternalAction.java 引入外部组件动作</p>
+<p>—FitDiagramToViewAction.java 组件大小调整动作响应</p>
+<p>—InitModelicaAction.java 初始化Modelica编译动作指令</p>
+<p>—NewDiagramAction.java 新建图表动作</p>
+<p>—NormalViewAction.java 还原正常视图动作</p>
+<p>—OpenAction.java 打开组件动作指令</p>
+<p>—OpenInSciAction.java 在sci编辑器里打开sci文件</p>
+<p>—PrintAction.java 打印动作</p>
+<p>—QuitAction.java 关闭xcos动作指令</p>
+<p>—RecentFileAction.java 最近处理过的文件显示</p>
+<p>—SaveAction.java 保存当前仿真框图至默认目录</p>
+<p>—SaveAsAction.java 将当前仿真框图另存至用户目录</p>
+<p>—SetContextAction.java 关联数据到模块</p>
+<p>—SetupAction.java 模块仿真设置</p>
+<p>—ShowHideShadowAction.java 显示隐藏组件动作</p>
+<p>—SimulationNotRunningAction.java 仿真运行标记动作</p>
+<p>—StartAction.java 开始仿真指令</p>
+<p>—StopAction0.java 停止仿真指令</p>
+<p>—ViewDiagramBrowserAction.java 切换图表浏览窗口视图动作</p>
+<p>—ViewGridAction.java 切换网格视图动作</p>
+<p>—ViewViewportAction.java 视图窗口视图动作</p>
+<p>—XcosDemonstrationsAction.java Xcos组件应用示范动作</p>
+<p>—XcosDocumentationAction.java Xcos组件说明文档动作</p>
+<p>1.2—block Xcos组件</p>
+<p>​       1.2.1—action 模块动作</p>
+<p>​          1.2.1.1—alignement 模块对齐</p>
+<p>​              1.2.1.1.1—AlignBlockAction.java 模块对齐动作</p>
+<p>​                  —AlignBlockActionBottom.java 模块底部对齐</p>
+<p>​                  —AlignBlockActionCenter.java 模块中心对齐</p>
+<p>​                  —AlignBlockActionLeft.java 模块左对齐</p>
+<p>​                  —AlignBlockActionMiddle.java 模块居中对齐</p>
+<p>​                  —AlignBlockActionRight.java 模块右对齐</p>
+<p>​                  —AlignBlockActionTop.java 模块顶部对齐</p>
+<p>​          1.2.1.2—BlockDocumentationAction.java 组件功能说明帮助</p>
+<p>文档动作</p>
+<p>​             —BlockParamtersAction.java 组件参数设置动作</p>
+<p>​             —BorderColorAction.java 组件边界颜色变化动作</p>
+<p>​             —CodeGenerationAction.java 代码自动生成动作</p>
+<p>​             —FilledColorAction.java 填充组件颜色动作</p>
+<p>​             —FlipAction.java 组件翻转动作</p>
+<p>​             —MirrorAction.java 组件镜像翻转动作</p>
+<p>​             —RegionToSuperblockAction.java 组件合并动作</p>
+<p>​             —RotateAction.java 组件旋转动作</p>
+<p>​             —ShowParentAction.java 显示父组件动作</p>
+<p>​             —SuperblockMaskCreateAction.java 集合组件显示生成</p>
+<p>​             —SuperblockMaskCustomizeAction.java 定制化集合组</p>
+<p>件显示</p>
+<p>​             —SuperblockMaskRemoveAction.java 移除集合组件显示</p>
+<p>​             —SuperblockSelectedAction.java 集合组件被选中动作响应</p>
+<p>​             —ViewDetailsAction.java 细节视图动作</p>
+<p>​      1.2.2—io 数据输入输出</p>
+<p>​          1.2.2.1—ContextUpdate.java 关联数据更新</p>
+<p>​             —EventInBlock.java 组件输入事件</p>
+<p>​             —EventOutBlock.java 组件输出事件</p>
+<p>​             —ExplicitInBlock.java 组件显式输入</p>
+<p>​             —ExplicitOutBlock.java 组件显式输出</p>
+<p>​             —ImplicitInBlock.java 组件隐式输入</p>
+<p>​             —ImplicitOutBlock.java 组件隐式输出</p>
+<p>​       1.2.3—listener 监听</p>
+<p>​          1.2.3.1—ProPortLabelingListener.java 分支标签端口监听</p>
+<p>​             —SumPortLabelingListener.java 汇总标签端口监听</p>
+<p>​       1.2.4—positionning 定位</p>
+<p>​          1.2.4.1—BigSom.java 在实例实现SumPortLabelingListener</p>
+<p>的连接(通过BIGSOM_f函数)</p>
+<p>​             —GroundBlock.java  构造新的单输入组件</p>
+<p>​             —Product.java 在实例实现与ProPortLabelingListener </p>
+<p>的连接(通过PRODUCT_f函数)</p>
+<p>​             —RoundBlock.java 实现一个有输入的循环组件</p>
+<p>​             —Summation.java 在实例实现SumPortLabelingListener</p>
+<p>的连接(通过SUMMATION函数) </p>
+<p>​             —VoltageSensorBlock.java  构造新的多输入组件</p>
+<p>​       1.2.5—AfficheBlock.java 实现一个可显示的组件</p>
+<p>​         —BasicBlock.java 实现一个基本组件</p>
+<p>​         —BlockFactory.java 组件的工厂设计模式</p>
+<p>​         —SplitBlock.java 用于组件之间的相互连接</p>
+<p>​         —SuperBlock.java 操作集合组件属性的方法</p>
+<p>​         —TextBlock.java 用于注释的文本组件</p>
+<p>   1.3—configuration 配置</p>
+<p>​       1.3.1—model 模块</p>
+<p>​          1.3.1.1—DocumentType.java 解析xml文件</p>
+<p>​             —ObjectFactory.java 对象工厂化</p>
+<p>​             —SettingType.java 修改或添加新的xml文件</p>
+<p>​       1.3.2—utils 功能</p>
+<p>​          1.3.2.1—ConfigurationConstants.java 常规配置类</p>
+<p>​       1.3.3—ConfigurationManager.java    配置管理器类</p>
+<p>1.4—graph 图表</p>
+<p>​       1.4.1—swing Swing处理</p>
+<p>​          1.4.1.1—handler</p>
+<p>​               1.4.1.1.1—ConnectionHandler.java 用于处理多点链接的</p>
+<p>连接处理程序</p>
+<p>​                    —ConnectPreview.java 用于处理连接预览的程序</p>
+<p>​                    —GraphHandler.java 用于处理双击图片的程序</p>
+<p>​                    —SelectionCellsHandler.java 清除子处理程序释放内存</p>
+<p>​          1.4.1.2—GraphComponent.java 实现Xcos与mxGraphComponent</p>
+<p>的接口</p>
+<p>​       1.4.2—CompilationEngineStatus.java 控制当前Scicos引擎的状态</p>
+<p>​         —DiagramComparator.java 将所有图表按照距离根图表的距</p>
+<p>离进行排序</p>
+<p>​         —PaletteDiagram.java 组件图设置</p>
+<p>​         —ScicosParameters.java Scicos参数设置</p>
+<p>​         —SuperBlockDiagram.java 集合组件图表设置</p>
+<p>​         —XcosDiagram.java Xcos图表及参数设置</p>
+<p>   1.5—io 输入输出</p>
+<p>​       1.5.1—codec 自动编码</p>
+<p>​          1.5.1.1—BasicBlockCodec.java 基本组件代码</p>
+<p>​             —BasicLinkCodec.java 基本链接代码</p>
+<p>​             —BasicPortCodec.java 端口连接代码</p>
+<p>​             —OrientationCodec.java 连接方向代码</p>
+<p>​             —XcosCodec.java 注册Xcos使用的所有软件包，用于</p>
+<p>序列化/反序列化</p>
+<p>​             —XcosDiagramCodec.java 将例程与XcosDiagram连接</p>
+<p>​             — XcosObjectCodec.java Xcos实例化对象代码      </p>
+<p>​       1.5.2—scicos Scicos方法</p>
+<p>​          1.5.2.1—AbstractElement.java 为一些抽象类提供方法</p>
+<p>​             —BasicBlockInfo.java 将基本对象个性化</p>
+<p>​        —BlockElement.java 在Scicos和Xcos之间执行块转换</p>
+<p>​             —BlockGraphicElement.java 将对象进行包装保护(Graphic化)</p>
+<p>​             —BlockModelElement.java 将对象进行包装保护(Model化)</p>
+<p>​             —BlockPartsElement.java 为组件对象提供公共方法</p>
+<p>​             —DiagramElement.java 在Scicos和Xcos之间执行图表</p>
+<p>转换</p>
+<p>​             —Element.java 为所有读/写scicos元素的元素对象提供</p>
+<p>方法</p>
+<p>​             —Handler.java 处理Xcos相关的属性</p>
+<p>​             —InputPortElement.java 处理Scicos与Xcos之间输入</p>
+<p>端口的转化</p>
+<p>​             —LableElement.java 处理Scicos与Xcos之间属性标签</p>
+<p>的转化</p>
+<p>​             —LinkElement.java 处理Scicos与Xcos之间连接的转化</p>
+<p>​             —OutputPortElement.java 处理Scicos与Xcos之间输出</p>
+<p>端口的转化</p>
+<p>​             —ScicosFormatException.java 用于处理Scicos元素默</p>
+<p>认的抛出异常</p>
+<p>​               —ScicosParametersElement.java 用于处理Scicos元素</p>
+<p>默认的仿真参数</p>
+<p>​             —ScilabDirectHandler.java 处理Scilab数据的直接访问</p>
+<p>​       1.5.3—spec 规范</p>
+<p>​          1.5.3.1—ContentEntry.java 用于处理特殊压缩文件内容</p>
+<p>​             —DictionaryEntry.java 用于处理特殊压缩文件的地址</p>
+<p>和文件清单</p>
+<p>​             —Entry.java 从Xcos包中加载/储存ZipEntry文件</p>
+<p>​             —XcosPackage.java 用于处理标准.zip格式的Xcos文件</p>
+<p>​       1.5.4—XcosFileType.java 所有可被Xcos识别的文件类型</p>
+<p>   1.6—link 连接</p>
+<p>​       1.6.1—actions 动作</p>
+<p>​          1.6.1.1—StyleAction.java 转换连接类型的基础类</p>
+<p>​             —StyleHorizontalAction.java 设置水平连接动作</p>
+<p>​        —StyleStraightAction.java 设置横向连接动作</p>
+<p>​             —StyleVerticalAction.java 设置垂直连接动作</p>
+<p>​             —TextAction.java 为连接设置文本说明</p>
+<p>​       1.6.2—commandcontrol  指令控制</p>
+<p>​          1.6.2.1—CommandControlLink.java 为控制端口和指令端口提</p>
+<p>供连接</p>
+<p>​       1.6.3—explicit 显式连接</p>
+<p>​          1.6.3.1—ExplicitLink.java 为显式连接的输入输出提供连接</p>
+<p>​       1.6.4—implicit 隐式连接</p>
+<p>​          1.6.4.1—ImplicitLink.java 为隐式连接的输入输出提供连接</p>
+<p>​       1.6.5—BasicLink.java 连接基础类</p>
+<p>​          —LinkPortMap.java 枚举用于从ids获取链接和端口类</p>
+<p>   1.7—modelica  Modelica语法规则</p>
+<p>​       1.7.1—listener 监听类</p>
+<p>​          1.7.1.1—FixDerivativesAction.java 规定当前模块的衍生类</p>
+<p>​            —FixStatesAction.java 规定当前模块的动作状态</p>
+<p>​             —SolveAction.java 模型求解</p>
+<p>​             —StatisticsUpdater.java 当前模块在表事件改变时更</p>
+<p>新统计信息</p>
+<p>​       1.7.2—model 模块</p>
+<p>​          1.7.2.1—Info.java 规定所有参数,状态,输入和输出的数据类</p>
+<p>型和大小</p>
+<p>​             —Model.java Modelica建模树状图</p>
+<p>​             —ModelicaValue.java Modelica指定字符串</p>
+<p>​             —ObjectFactory.java 对象工厂化公用方法</p>
+<p>​             —Output.java 以Modelica的规范输出</p>
+<p>​             —Struct.java 内容结构的部分树状化(并非节点分支)</p>
+<p>​             —Terminal.java 结构化树的终端节点(总是节点分支)</p>
+<p>​       1.7.3—view 视图</p>
+<p>​          1.7.3.1—LableWithValue.java 具有坐标轴和标题的面板</p>
+<p>​             —MainPanel.java Modelica模型的主要视图的初始化</p>
+<p>​       1.7.4—Modelica.java 模型操作的主要类</p>
+<p>​         —ModelicaController.java 用接口封装的模型控制器</p>
+<p>​         —ModelicaMessages.java 包含当前包及子包的本地信息</p>
+<p>​         —ModelStatistics.java 模型的函数统计</p>
+<p>​         —TerminalAccessor.java 访问Terminal列表模型</p>
+<p>​         —TerminalTableModel.java 建立Terminal列表模型</p>
+<p>   1.8—palette 组件盘</p>
+<p>​       1.8.1—actions 动作</p>
+<p>​          1.8.1.1—ClosePalettesAction.java 关闭组件盘</p>
+<p>​             —LoadAsPalAction.java 加载组件盘</p>
+<p>​             —NewPaletteAction.java 新建组件盘</p>
+<p>​             —ViewPaletteBrowserAction.java 组件盘浏览器视图动作，</p>
+<p>管理组件盘选项卡</p>
+<p>​       1.8.2—listener 监听</p>
+<p>​          1.8.2.1—PaletteBlockMouseListener.java 组件盘组件的鼠标</p>
+<p>操作监听</p>
+<p>—PaletteManagerMouseListener.java 组件盘管理器的鼠标操作监听</p>
+<p>​             —PaletteManagerTreeSelectionListener.java 监听组件盘组件</p>
+<p>树管理被选中</p>
+<p>​             —PaletteTreeTransferHandler.java 处理组件盘组件树</p>
+<p>​       1.8.3—model 模块</p>
+<p>​          1.8.3.1—Category.java 可包含子组件的父组件集合</p>
+<p>​             —Custom.java 组件盘加载自定义组件图形</p>
+<p>​             —ObjectFactory.java 对象工厂化实例通用方法</p>
+<p>​             —Palette.java 在主视图中组件盘的显示</p>
+<p>​             —PaletteBlock.java在主视图中组件(函数化)的图形显示</p>
+<p>​             —PaletteNode.java 组件盘标记语言的Java类化</p>
+<p>​             —PreLoaded.java 通过连接组件信息文件在组件盘中进</p>
+<p>行预加载组件</p>
+<p>​             —VariablePath.java 实时计算所需文件的绝对路径</p>
+<p>​       1.8.4—view 视图</p>
+<p>​          1.8.4.1—ModifiedFlowLayout.java 改良后的流动布局类(可在</p>
+<p>JScrollPane中运行)</p>
+<p>​             —PaletteBlockView.java 组件视图</p>
+<p>​             —PaletteComponent.java 自定义默认组件</p>
+<p>​             —PaletteConfiguratorListView.java 组件列表布局配置</p>
+<p>​             —PaletteManagerPanel.java 组件盘窗口视图</p>
+<p>​             —PaletteManagerView.java 实现组件的默认视图</p>
+<p>​             —PaletteTreeModel.java 将组件节点绑定在处理启用标                                       志的特定模型上。</p>
+<p>​             —PaletteView.java 实现组件块的视图</p>
+<p>​       1.8.5—Palette.java 组件类</p>
+<p>​         —PaletteBlockCtrl.java 用于在工作区上加载或放置组件</p>
+<p>​         —PaletteManager.java 组件管理的主类</p>
+<p>​         —PreLoadedElement.java 连接到预加载的组件时对组件进行解码</p>
+<p>​         —StyleElement.java 对放置在工作区的组件进行解码</p>
+<p>   1.9—port 端口</p>
+<p>​       1.9.1—command 指令</p>
+<p>​          1.9.1.1—CommandPort.java 用于将指令传达到受控的组件</p>
+<p>​       1.9.2—control 控制</p>
+<p>​          1.9.2.1—ControlPort.java 用于控制受控的组件</p>
+<p>​       1.9.3—input 输入</p>
+<p>​          1.9.3.1—ExplicitInputPort.java 显式输入端口公用方法</p>
+<p>​             —ImplicitInputPort.java 隐式输入端口公用方法</p>
+<p>​             —InputPort.java 输入端口(用于连接组件与内连函数)</p>
+<p>​       1.9.4—output 输出</p>
+<p>​          1.9.4.1— ExplicitOutputPort.java 显式输出端口公用方法</p>
+<p>​             —ImplicitOutputPort.java 隐式输出端口公用方法</p>
+<p>​             —OutputPort.java 输出端口(用于连接组件与内连函数)</p>
+<p>​       1.9.5—BasicPort.java 端口的公共基础类</p>
+<p>​         —Orientation.java 端口默认方向</p>
+<p>​         —PortCheck.java 依据规则检查端口连接是否正确</p>
+<p>   1.10—preferences 综合</p>
+<p>​       1.10.1—XcosConfiguration.java Xcos的相关配置类</p>
+<p>​          —XcosKeyMap.java Xcos的所有类的集合</p>
+<p>​          —XcosOptions.java Xcos选项设置</p>
+<p>   1.11—utils 功能</p>
+<p>​       1.11.1—BlockChange.java 改变组件块</p>
+<p>​          —BlockPositioning.java 组件块端口放置帮助类</p>
+<p>​          —FileUtils.java 包含文件的一般处理</p>
+<p>​          —PaletteComponent.java 默认组件盘样式</p>
+<p>​          —XcosConstants.java 包含所有应用的默认常量</p>
+<p>​          —XcosDelegates.java 包含Xcos所有引用的其他模块的函数</p>
+<p>​          —XcosDialogs.java Xcos标准的对话框样式</p>
+<p>​          —XcosEvent.java 所有Xcos的事件</p>
+<p>​          —XcosMessages.java 所有Xcos要用到的本地化信息</p>
+<p>   1.12—ViewPortTab.java Xcos的视图操作</p>
+<p>   1.13—Xcos.java Xcos的入口类</p>
+<p>   1.14—XcosTab.java Xcos的界面设计与事件动作绑定</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2018/03/25/Xcos%E6%A8%A1%E5%9D%97%E7%BB%93%E6%9E%84/">http://joccer.gitee.io/2018/03/25/Xcos%E6%A8%A1%E5%9D%97%E7%BB%93%E6%9E%84/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/">Scilab 仿真云化改造</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2018/03/30/Xcos%E5%B7%A5%E5%85%B7%E7%AE%B1%E5%8A%9F%E8%83%BD%E5%8C%85%E6%8C%82%E8%BD%BD/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Scilab 云化改造(4)_Xcos工具箱功能包挂载</div></div></a></div><div class="next-post pull-right"><a href="/2018/02/15/ScilabXcos%20%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E5%8F%8A%E8%BF%90%E8%A1%8C%E5%88%86%E6%9E%90/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Scilab 云化改造(1)_Scilab/Xcos概述</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2018/02/15/ScilabXcos 编译安装及运行分析/" title="Scilab 云化改造(1)_Scilab/Xcos概述"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-02-15</div><div class="title">Scilab 云化改造(1)_Scilab/Xcos概述</div></div></a></div><div><a href="/2018/04/05/Xcos仿真流程分析/" title="Scilab 云化改造(3)_Xcos仿真流程分析"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-04-05</div><div class="title">Scilab 云化改造(3)_Xcos仿真流程分析</div></div></a></div><div><a href="/2018/03/30/Xcos工具箱功能包挂载/" title="Scilab 云化改造(4)_Xcos工具箱功能包挂载"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-03-30</div><div class="title">Scilab 云化改造(4)_Xcos工具箱功能包挂载</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
