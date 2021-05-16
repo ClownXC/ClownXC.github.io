@@ -1,0 +1,407 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>周晓晨 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="建立连接 [三次握手]客户端和服务器通过 TCP 发送数据之前，必须先建立连接。建立连接的过程也被称为 TCP 握手，三次握手的目的是建立可靠的通信信道。确认自己与对方的发送与接收机能正常。  第一次握手  客户端 TCP 首先向服务器端 TCP 发送连接请求报文段，这时首部中的同步位 SYN &#x3D; 1，同时选择一个初始随机序号 seq &#x3D; x。此时，客户端进程进入同步已发送（SYN-SENT）状态">
+<meta property="og:type" content="article">
+<meta property="og:title" content="周晓晨">
+<meta property="og:url" content="http://joccer.gitee.io/2021/01/06/Hello%20TCP/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="建立连接 [三次握手]客户端和服务器通过 TCP 发送数据之前，必须先建立连接。建立连接的过程也被称为 TCP 握手，三次握手的目的是建立可靠的通信信道。确认自己与对方的发送与接收机能正常。  第一次握手  客户端 TCP 首先向服务器端 TCP 发送连接请求报文段，这时首部中的同步位 SYN &#x3D; 1，同时选择一个初始随机序号 seq &#x3D; x。此时，客户端进程进入同步已发送（SYN-SENT）状态">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-01-06T06:59:47.955Z">
+<meta property="article:modified_time" content="2021-05-16T03:02:52.294Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2021/01/06/Hello%20TCP/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-05-16 11:02:52'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">122</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">12</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="toc-number">1.</span> <span class="toc-text">建立连接 [三次握手]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.1.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%A8%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E7%9A%84%E8%BF%87%E7%A8%8B%E4%B8%AD%E8%A6%81%E5%88%9D%E5%A7%8B%E5%8C%96%E5%BA%8F%E5%88%97%E5%8F%B7%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E9%9A%8F%E6%9C%BA%E5%BA%8F%E5%8F%B7%EF%BC%8C%E8%80%8C%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E5%9B%BA%E5%AE%9A%E7%9A%84%E5%BA%8F%E5%8F%B7%EF%BC%9F"><span class="toc-number">1.1.0.1.</span> <span class="toc-text">为什么在三次握手的过程中要初始化序列号，为什么要使用随机序号，而不能使用固定的序号？</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8A%E6%94%BE%E8%BF%9E%E6%8E%A5-%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B"><span class="toc-number">2.</span> <span class="toc-text">释放连接 [四次挥手]</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TCP-%E6%8A%A5%E6%96%87%E6%AE%B5%E7%9A%84%E9%A6%96%E9%83%A8%E6%A0%BC%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">TCP 报文段的首部格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-1"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TCP-%E7%89%B9%E7%82%B9"><span class="toc-number">6.</span> <span class="toc-text">TCP 特点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TCP-%E7%9A%84%E8%BF%9E%E6%8E%A5"><span class="toc-number">7.</span> <span class="toc-text">TCP 的连接</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">无题</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-01-06T06:59:47.955Z" title="发表于 2021-01-06 14:59:47">2021-01-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-05-16T03:02:52.294Z" title="更新于 2021-05-16 11:02:52">2021-05-16</time></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">5.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h2 id="建立连接-三次握手"><a href="#建立连接-三次握手" class="headerlink" title="建立连接 [三次握手]"></a>建立连接 [三次握手]</h2><p>客户端和服务器通过 TCP 发送数据之前，必须先建立连接。建立连接的过程也被称为 TCP 握手，三次握手的目的是建立可靠的通信信道。确认自己与对方的发送与接收机能正常。</p>
+<ol>
+<li><p><strong>第一次握手</strong></p>
+<blockquote>
+<p>客户端 TCP 首先向服务器端 TCP 发送<strong>连接请求报文段</strong>，这时首部中的同步位 SYN = 1，同时选择一个初始随机序号 seq = x。此时，客户端进程进入<strong>同步已发送（SYN-SENT）</strong>状态</p>
+</blockquote>
+<p>TCP 规定，SYN 报文段（即 SYN = 1的报文段）<strong>不能携带数据</strong>，但是要<strong>消耗掉一个序号</strong>。</p>
+<img src="../images/计算机网络/截屏2021-05-15 下午5.07.01.png" alt="截屏2021-05-15 下午5.07.01" style="zoom:28%;" />
+
+</li>
+</ol>
+<img src="../images/计算机网络/截屏2021-05-15 下午5.06.05.png" alt="截屏2021-05-15 下午5.06.05" style="zoom:40%;" />
+
+<ol start="2">
+<li><strong>第二次握手</strong></li>
+</ol>
+<p>服务器收到<strong>连接请求报文段</strong>后，如同意连接，则服务器会为该 TCP 连接<strong>分配缓存和变量</strong>，并向客户端返回<strong>确认报文段</strong>，在确认报文段中同步位 SYN = 1 和 确认位 ACK  = 1，确认号 ack = x + 1，同时也为自己选择一个初始序号 seq = y。这时 TCP 服务器进程进入<strong>同步收到（SYN-RCVD）</strong>状态</p>
+<img src="../images/计算机网络/截屏2021-05-15 下午5.08.56.png" alt="截屏2021-05-15 下午5.08.56" style="zoom:28%;" />
+
+<img src="../images/计算机网络/截屏2021-05-15 下午5.10.03.png" alt="截屏2021-05-15 下午5.10.03" style="zoom:40%;" />
+
+<p>如果 server 端接到了 client 发的 SYN 后回了 SYN-ACK 后 client 掉线了, server 端没有收到 client 回来的ACK，那么，这个连接处于一个中间状态，即没成功，也没失败。于是，server端如果在一定时间内没有收到的TCP会重发SYN-ACK。</p>
+<p>在 Linux 下，默认重试次数为 5 次，重试的间隔时间从1s开始每次都翻售，5次的重试时间间隔为1s, 2s, 4s, 8s, 16s，总共31s，第5次发出后还要等32s都知道第5次也超时了，所以，总共需要 1s + 2s + 4s+ 8s+ 16s + 32s = 2^6 -1 = 63s，TCP才会把断开这个连接。</p>
+<ol start="3">
+<li><strong>第三次握手</strong></li>
+</ol>
+<p>客户进程在收到服务器进程的确认报文后，客户端为该 TCP 连接<strong>分配缓存和变量</strong>，并向服务器端返回一个报文段，这个报文段是对服务器确认报文段进行确认，该报文段中 ACK = 1，确认号 ack = y + 1，而自己序号为 x + 1。客户端在发送 ACK 报文段后进入<strong>已建立连接（ESTABLISHED）</strong>状态，这时 TCP 连接已经建立。当服务器收到客户端的确认后，也进入<strong>ESTABLISHED</strong>状态。</p>
+<img src="../images/计算机网络/截屏2021-05-15 下午5.14.28.png" alt="截屏2021-05-15 下午5.14.28" style="zoom:35%;" />
+
+<img src="../images/计算机网络/截屏2021-05-15 下午5.15.18.png" alt="截屏2021-05-15 下午5.15.18" style="zoom:40%;" />
+
+<p>‘</p>
+<p>完成三次握手，随后客户端与服务器之间可以开始传输数据了。</p>
+<p>![截屏2021-05-15 下午5.29.08](../images/计算机网络/截屏2021-05-15 下午5.29.08.png)</p>
+<hr>
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><h5 id="为什么在三次握手的过程中要初始化序列号，为什么要使用随机序号，而不能使用固定的序号？"><a href="#为什么在三次握手的过程中要初始化序列号，为什么要使用随机序号，而不能使用固定的序号？" class="headerlink" title="为什么在三次握手的过程中要初始化序列号，为什么要使用随机序号，而不能使用固定的序号？"></a><font color='blue'>为什么在三次握手的过程中要初始化序列号，为什么要使用随机序号，而不能使用固定的序号？</font></h5><p>这样选择序号的目的是为了<strong>防止由于网络路由 TCP 报文段可能存在延迟抵达与排序混乱的问题，从而而导致某个连接的一方对它作错误的解释</strong>。</p>
+<p>如果客户服务器双方建立连接使用固定的序号，在经过三次握手后建立了一个TCP连接，在传输数据时有网路问题而导致数据未能到达，这个报文段在网络中停留。之后，由于某些原因（如客户端主机故障）导致这个TCP连接被释放，等到客户端主机恢复后，使用相同的序列号重新建立一个连接时，在之后的某个时间段，如果之前由于网络问题的报文段达到服务器端，那么服务器就可能会收下这个报文段，而这个数据是属于之前的旧连接的数据，所以这就会导致数据乱序的问题。</p>
+<p>由于一个TCP连接是被一对端点所表示的，其中包括2个IP地址和2个端口号构成的4元组，因此即便是同一个连接也会出现不同的实例，如果连接由于某个报文段长时间延迟而关闭，然后又以相同的4元组被重新打开，那么可以相信延迟的报文段又会被视为有效据重新进入新连接的数据流中，这就会导致数据乱序问题。</p>
+<p>为了避免上述的问题，<strong>避免连接实例间的序号重叠可以将风险降至最低</strong>。</p>
+<p>一个 TCP 报文段只有同时具备连接的 4 元组与当前活动窗口的序列号，才会在通信过程中被对方认为是正确的。然而，这也反应了 TCP 连接的脆弱性：如果选择合适的序列号、IP地址和端口号，那么任何人都能伪造一个TCP报文段，从而打断 TCP 的正常连接。所以使用初始化序号的方式（通常随机生成序号）使得序列号变得难猜，或者使用加密来避免利用这种缺点被攻击。</p>
+<p><strong><font color='blue'>为什么客户端第一次握手不能携带数据而第三次握手可以携带数据？</font></strong></p>
+<blockquote>
+<p>假如第一次握手可以携带数据的话，如果有人使用伪 TCP 报文段恶意攻击服务器，那么每次都在第一次握手中的 SYN 报文中携带大量的数据，因为它不会理会服务器的发送和接收能力是否正常，不断地给服务器重复发送这样携带大量数据的 SYN 报文，这会导致服务器需要花费大量的时间和内存来接收这些报文数据，这会将导致服务器连接资源和内存消耗殆尽。</p>
+</blockquote>
+<blockquote>
+<p>之所以第一次握手不能携带数据，其中的一个原因就是<strong>避免让服务器受到攻击</strong>。而对于第三次握手，此时客户端已经建立了连接，通过前两次已经知道了服务器的接收正常，并且也知道了服务器的接收能力是多少，所以可以携带数据。</p>
+</blockquote>
+<p><strong><font color='blue'>为什么连接建立需要三次握手，而不是两次握手？</font></strong></p>
+<p>根据前面描述，在第一次握手，客户端向服务发送建立连接请求，第二次握手，服务器同意建立连接，并向客户端返回一个确认报文，至此客户端已经知道了服务器同意建立连接，为什么客户端还需要对服务器的允许连接报文段进行确认？</p>
+<blockquote>
+<p><strong>三次握手的最主要目的是保证连接是双工的，可靠更多的是通过重传机制来保证的。</strong></p>
+</blockquote>
+<blockquote>
+<p><strong>为了保证服务端能收接受到客户端的信息并能做出正确的应答而进行前两次(第一次和第二次)握手，为了保证客户端能够接收到服务端的信息并能做出正确的应答而进行后两次(第二次和第三次)握手。</strong></p>
+</blockquote>
+<p><strong><font color='blue'>SYN 洪泛攻击以及如何解决 SYN 洪泛攻击</font></strong></p>
+<p>在三次握手的过程中，服务器为了响应一个收到的 SYN 报文段，会分配并初始化连接变量和缓存，然后服务器发送一个SYNACK报文段进行响应，并等待客户端的 ACK 报文段。如果客户不发送 ACK 来完成该三次握手的第三步，最终（通常在一分多钟之后）服务器将终止该半开连接并回收资源。</p>
+<p>这种 TCP 连接管理协议的特性就会有这样一个漏洞，攻击者发送大量的 TCP SYN 报文段，而不完成第三次握手的步骤。随着这种 SYN 报文段的不断到来，服务器不断为这些半开连接分配资源，从而导致服务器连接资源被消耗殆尽。这种攻击就是 <strong>SYN 洪泛攻击</strong>。</p>
+<p>为了应对这种攻击，现在有一种有效的防御系统，称为 <strong>SYN cookie</strong>。SYN cookie 的工作方式如下：</p>
+<ol>
+<li><p>当服务器接收到一个 SYN 报文段时，它并不知道该报文段是来自一个合法的用户，还是这种 SYN 洪泛攻击的一部分。因为服务器不会为该报文段生成一个半开的连接。相反，服务器生成一个初始 TCP 序列号，该序列号是 SYN 报文段的源IP地址和目的IP地址，源端口号和目的端口号以及仅有服务器知道的秘密数的复杂函数（散列函数）。这种精心制作的初始序列号称为为”cookie”。服务器则发送具有这种特殊初始序号的SYNACK报文分组。<strong>服务器并不记忆该cookie或任何对应于SYN的其他状态信息。</strong></p>
+</li>
+<li><p>如果该客户是合法的，则它将返回一个 ACK 报文段。当服务器收到该 ACK 报文段，需要验证该ACK是与前面发送的某个SYN相对应。由于服务器并不维护有关SYN报文段的记忆，所以服务器通过使用SYNACK报文段中的源和目的IP地址与端口号以及秘密数运行相同的散列函数。如果这个函数的结果（cookie值）加1和在客户的 ACK 报文段中的确认值相同的话，那么服务器就会认为该 ACK 对应于较早的 SYN 报文段，因此它是合法的。服务器则会生成一个套接字的全开连接。</p>
+</li>
+<li><p>另一方面，如果客户没有返回一个 ACK 报文段，说明之前的 SYN 报文段是洪泛攻击的一部分，但是它并没有对服务器产生危害，因为服务器没有为它分配任何资源。</p>
+</li>
+</ol>
+<h2 id="释放连接-四次挥手"><a href="#释放连接-四次挥手" class="headerlink" title="释放连接 [四次挥手]"></a>释放连接 [四次挥手]</h2><p>数据传输完毕后，双方都可释放连接。最开始的时候，客户端和服务器都是处于 ESTABLISHED 状态，然后客户端主动关闭，服务器被动关闭。由于TCP连接是全双工的，因此每个方向都必须单独进行关闭。这个原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个 FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。</p>
+<ol>
+<li><p><strong>第一次挥手</strong></p>
+<blockquote>
+<p>客户端进程发出连接释放报文，并且停止发送数据。释放数据报文首部 FIN = 1，其序列号为seq = u（等于前面已经传送过来的数据的最后一个字节的序号加1），此时，客户端进入 <strong>FIN-WAIT-1</strong> 状态。</p>
+</blockquote>
+<p><font color='grey'>TCP 规定，FIN 报文段即使不携带数据，也要消耗一个序号。</font></p>
+</li>
+<li><p><strong>第二次挥手</strong></p>
+<blockquote>
+<p>服务器收到连接释放报文，发出确认报文，ACK=1，ack number=u+1，并且带上自己的序列号seq=v，此时，服务端就进入了 CLOSE-WAIT (关闭等待）状态。</p>
+</blockquote>
+<p>TCP 服务器通知高层的应用进程，客户端向服务器的方向就释放了，这时候处于半关闭状态，即客户端已经没有数据要发送了，但是服务器若发送数据，客户端依然要接受。这个状态还要持续一段时间，也就是整个CLOSE-WAIT 状态持续的时间。</p>
+</li>
+<li><p><strong>第三次挥手</strong></p>
+<blockquote>
+<p>客户端收到服务器的确认请求后，此时，客户端就进入 <strong>FIN-WAIT-2</strong>（终止等待2）状态，等待服务器发送连接释放报文。服务器将最后的数据发送完毕后，就向客户端发送连接释放报文，FIN = 1，ack number= u+1，由于在半关闭状态，服务器很可能又发送了一些数据，假定此时的序列号为seq=w，此时，服务器就进入了LAST-ACK（最后确认）状态，等待客户端的确认。</p>
+</blockquote>
+</li>
+<li><p><strong>第四次挥手</strong></p>
+<blockquote>
+<p>客户端收到服务器的连接释放报文后，必须发出确认，ACK=1，ack number=w+1，而自己的序列号是seq=u+1，此时，客户端就进入了 <strong>TIME-WAIT</strong>(时间等待)<strong>状态。注意此时 TCP 连接还没有释放，必须经过 2MSL</strong>(最长报文段寿命)的时间后，等待 <strong>2MSL</strong> 后依然没有收到回复，则证明 Server 端已正常关闭,客户端撤销相应的 TCB 后，才进入 CLOSED 状态。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>对实时性要求高和高速传输的场合下使用 UDP；在可靠性要求低，追求效率的情况下使用 UDP；</p>
+<p>需要传输大量数据且对可靠性要求高的情况下使用 TCP</p>
+<p>注：由于TCP提供可靠交付和有序性的保证，它是最适合需要高可靠并且对传输时间要求不高的应用。UDP 是更适合的应用程序需要快速，高效的传输的应用，如游戏。UDP 是无状态的性质，在服务器端需要对大量客户端产生的少量请求进行应答的应用中是非常有用的。在实践中，TCP 被用于金融领域，如FIX协议是一种基于 TCP 的协议，而 UDP 是大量使用在游戏和娱乐场所。</p>
+<h2 id="TCP-报文段的首部格式"><a href="#TCP-报文段的首部格式" class="headerlink" title="TCP 报文段的首部格式"></a>TCP 报文段的首部格式</h2><p>一个 TCP 报文段分为<strong>首部</strong>和<strong>数据部分</strong>两部分。</p>
+<img src="../images/计算机网络/截屏2021-05-15 下午2.11.14.png" alt="截屏2021-05-15 下午2.11.14" style="zoom:70%;" />
+
+<p>TCP 报文段首部的前 20 个字节是固定的，后面有 <code>4n</code> 字节是根据需要而增加的选项。因此 <strong>TCP 首部的最小字节是 20 字节</strong>。</p>
+<p><strong>源端口和目的端口</strong></p>
+<p>各占 2 字节，分别写入源端口号和目的端口号，TCP 的分用功能也是通过端口实现的。</p>
+<p><strong>序号</strong></p>
+<p>占 4 字节，序号范围是[0, 2<sup>32</sup> - 1]，共 2<sup>32</sup> 个序号。首部中的序号字段值则指的是本报文段所发送的数据的<strong>第一个字节的序号</strong>。</p>
+<blockquote>
+<p>序号是可以重用的，当序号增加到 [2<sup>32</sup>-1] 后，下一个序号就又回到了0，所以序号逻辑上可以表示为一个循环数组</p>
+</blockquote>
+<blockquote>
+<p>例如，若一个报文段的序号字段值是 301，而携带的数据共有 100 字节，这就表明：本报文段的数据第一个字节的序号是 301，最后一个字节的序号是400。如果还有下一个报文段，则其序号字段的的值应为401。</p>
+</blockquote>
+<p><strong>确认号</strong></p>
+<p>占 4 字节，是<strong>期望收到对方下一个报文段的第一个数据字节的序号</strong></p>
+<blockquote>
+<p>例如，B正确收到了A发送过来的一个报文段，其序号字段值是501，而该报文段的数据长度是200字节[序号501~700]，这表明B正确收到了A发送的到序号700为止的数据，因此B期望收到A的下一个数据序号是701，TCP是可靠传输，收到数据后需要给发送方回复确认信息，所以B在收到数据后给A发送的确认收到的报文段中就把确认号置为701。</p>
+</blockquote>
+<blockquote>
+<p><strong>若确认号 = N,则表明：到序号N - 1为止的所有数据都已正确收到。</strong></p>
+</blockquote>
+<p><strong>数据偏移</strong></p>
+<p>占 4 位，单位：4B。它指出 TCP 报文段数据起始处距离 TCP 报文段的起始处有多远。这个字段实际上是指出 <strong>TCP 报文段的首部长度</strong>。</p>
+<p><strong>保留</strong></p>
+<p>占 6 位，保留今后使用</p>
+<p><strong>控制位</strong></p>
+<ul>
+<li><p><strong>紧急 URG</strong>（URGent）</p>
+<p>仅当 URG = 1，表明后面的紧急指针字段才有效。它表明系统此<strong>报文段有紧急数据，应尽快传送，而不要按照原来的排队顺序来传送</strong>。</p>
+</li>
+<li><p><strong>确认 ACK</strong>（ACKnowledgment）</p>
+<p>仅当 ACK = 1 时，确认号字段才有效。TCP 规定，<strong>在连接建立后所有传送的报文段都必须把 ACK 置 1。</strong></p>
+</li>
+<li><p><strong>推送 PSH</strong>（PUSH）</p>
+<p>通常如果 TCP 缓存中字节很少，TCP 会等待积累有足够多的字节后再构成报文段发送出去，当发送方将 PSH 置为 1时，并立即创建一个报文段发送出去，接收方 TCP 收到 PSH = 1 的报文段，就尽快地交付接收应用进程，而不再等到整个缓存都填满在向上交付。</p>
+</li>
+<li><p><strong>复位 RST</strong>（ReSeT）</p>
+<p>当 RST = 1 时，表明 TCP 连接中出现了严重差错，必须释放连接，然后再重新建立传输连接。RST置为1还可以用来拒绝一个非法的报文段或拒绝打开一个连接。RST也可称为重建位或重置位。</p>
+</li>
+<li><p><strong>同步 SYN</strong>（SYNchronization）</p>
+<p><strong>在连接建立时用来同步序号。</strong>当SYN = 1而ACK = 0时，表明这是一个连接请求报文段。对方同意建立连接，则应在响应的报文段中使用SYN = 1和ACK = 1.因此，SYN 置为1表示这是一个连接请求或连接接收报文。</p>
+</li>
+<li><p><strong>终止 FIN</strong>（FINis）</p>
+<p>用来释放一个连接。当FIN = 1时，表明此报文段的发送方的数据发送完毕，并要求释放传输连接。</p>
+</li>
+</ul>
+<p><strong>窗口</strong></p>
+<p>占2字节，是指发送本报文段的一方的<strong>接收窗口</strong>。窗口的值表示：从本报文段首部中的确认号算起，接收方目前允许对方发送的数据量。即<strong>窗口值作为接收方让发送方设置其发送窗口的依据</strong>。之所以要有这个限制，是因为接收方的数据缓存空间是有限的。</p>
+<blockquote>
+<p>例如，A是发送方，B是接收方，B给A发送一个确认接收数据的报文，其确认号701（表示701之前的所有数据都已经正确收到，期望A下一个报文段的第一个数据字节序号为701），窗口字段的值是1000，这就是告诉发送方A：从701号算起，我的接收缓存还可以接收1000个字节数据，在你给我发送数据的时候，你需要考虑一下我的接收能力。</p>
+</blockquote>
+<blockquote>
+<p><strong>窗口字段明确指出了现在允许对方发送的数据量。窗口值是经常在动态变化</strong>。</p>
+</blockquote>
+<p><strong>校验和</strong></p>
+<p>占2字节。校验和字段校验的范围包括<strong>首部</strong>和<strong>数据</strong>这两个部分。和UDP用户数据报一样，在计算校验和时，需要在TCP报文段的前面加上12字节的<strong>伪首部</strong>。伪首部的格式和UDP伪首部的格式一样，只是需要将协议字段改为6，TCP协议号是6。</p>
+<p><strong>紧急指针</strong>：紧急指针只有在URG= 1时才有意义，它和URG字段配合使用，它指出了报文段中紧急数据的字节数，因此，紧急指针指出了<strong>紧急数据的末尾在报文段中的位置</strong>。</p>
+<blockquote>
+<p>即使窗口的值为0也可以发送紧急数据。</p>
+</blockquote>
+<p><strong>选项和填充</strong>：长度可变，最长可达40字节。填充字段是为了使整个TCP首部的长度是4字节的整数倍。</p>
+<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><h2 id="TCP-特点"><a href="#TCP-特点" class="headerlink" title="TCP 特点"></a>TCP 特点</h2><ol>
+<li><p>TCP 是<strong>面向连接</strong>的传输层协议</p>
+<blockquote>
+<p>应用程序是使用 TCP 协议之前，必须建立 TCP 连接。在传送数据完毕后，必须释放已建立的 TCP 连接。TCP 连接是一条虚连接（逻辑连接），而不是一条真正的物理连接。</p>
+</blockquote>
+</li>
+<li><p>每一条 TCP 连接只能有两个<strong>端点</strong>，每条TCP连接只能是<strong>点对点</strong>的（一对一）。</p>
+</li>
+<li><p>TCP 提供<strong>可靠交付</strong>的服务。通过 TCP 连接传送的数据，<strong>无差错、不丢失、不重复、并且按序达到</strong>。</p>
+</li>
+<li><p>TCP 提供<strong>全双工通信</strong></p>
+</li>
+<li><p>TCP <strong>面向字节流</strong></p>
+<blockquote>
+<p>虽然应用程序和 TCP 的交互是一次一个数据块（大小可以不等），但是TCP把应用程序交下来的数据块看成仅仅一连串的<strong>无结构的字节流。</strong></p>
+</blockquote>
+</li>
+</ol>
+<h2 id="TCP-的连接"><a href="#TCP-的连接" class="headerlink" title="TCP 的连接"></a>TCP 的连接</h2><p>每条 TCP 连接有两个端点，TCP 连接的端点叫做<strong>套接字</strong>或<strong>插口</strong>，这里的套接字定义为：<strong>端口号拼接到IP地址即构成了套接字</strong>。</p>
+<p>套接字的表示方法是在点分十进制的IP地址后面写上端口号，中间用冒号或逗号隔开。</p>
+<p>套接字 socket=（IP地址 : 端口号）</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2021/01/06/Hello%20TCP/">http://joccer.gitee.io/2021/01/06/Hello%20TCP/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2021/04/20/TCP%20%E9%98%BB%E5%A1%9E%E6%8E%A7%E5%88%B6/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info"></div></div></a></div><div class="next-post pull-right"><a href="/2021/01/06/Hello%20UDP/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info"></div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
