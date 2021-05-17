@@ -1,0 +1,331 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>周晓晨 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="生产环境中，为了防止硬件故障、软件故障、自然灾害、误操作等各种原因导致的数据库数据丢失后能恢复到事故之前的状态，需要对数据库进行备份和恢复操作。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="周晓晨">
+<meta property="og:url" content="http://joccer.gitee.io/2021/02/19/MySQL%E5%A4%87%E4%BB%BD/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="生产环境中，为了防止硬件故障、软件故障、自然灾害、误操作等各种原因导致的数据库数据丢失后能恢复到事故之前的状态，需要对数据库进行备份和恢复操作。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-02-19T11:48:32.188Z">
+<meta property="article:modified_time" content="2021-03-12T07:02:41.660Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2021/02/19/MySQL%E5%A4%87%E4%BB%BD/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-03-12 15:02:41'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">244</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">15</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">17</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%87%E4%BB%BD%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">1. 备份类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%A4%87%E4%BB%BD%E6%96%B9%E5%BC%8F%E5%92%8C%E5%B7%A5%E5%85%B7%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.</span> <span class="toc-text">2. 备份方式和工具介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E9%80%BB%E8%BE%91%E5%A4%87%E4%BB%BD%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1. 逻辑备份工具</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-1-mysqldump"><span class="toc-number">2.1.1.</span> <span class="toc-text">2.1.1. mysqldump</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%89%A9%E7%90%86%E5%A4%87%E4%BB%BD%E5%B7%A5%E5%85%B7"><span class="toc-number">2.2.</span> <span class="toc-text">2.2. 物理备份工具</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-cp"><span class="toc-number">2.2.1.</span> <span class="toc-text">2.2.1. cp</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-xtrabackup-XBK-percona-%E7%AC%AC%E4%B8%89%E6%96%B9"><span class="toc-number">2.2.2.</span> <span class="toc-text">2.2.2. xtrabackup(XBK) percona 第三方</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-MySQL-Enterprise-Backup-MEB"><span class="toc-number">2.2.3.</span> <span class="toc-text">2.2.3. MySQL Enterprise Backup(MEB)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-4-%E6%80%BB%E7%BB%93"><span class="toc-number">2.2.4.</span> <span class="toc-text">2.2.4. 总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%A4%87%E4%BB%BD%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">3. 备份工具使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-mysqldump-%E9%80%BB%E8%BE%91%E5%A4%87%E4%BB%BD%E7%9A%84%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%B7%A5%E5%85%B7"><span class="toc-number">3.1.</span> <span class="toc-text">3.1. mysqldump (逻辑备份的客户端工具)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-1-%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%80%9A%E7%94%A8%E5%8F%82%E6%95%B0"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1 客户端通用参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-2-%E5%A4%87%E4%BB%BD%E4%B8%93%E7%94%A8%E5%9F%BA%E6%9C%AC%E5%8F%82%E6%95%B0"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.1.2 备份专用基本参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#A-%E5%85%A8%E5%A4%87%E5%8F%82%E6%95%B0"><span class="toc-number">3.1.3.</span> <span class="toc-text">[-A 全备参数]</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#B-db1-db2-db3-%E5%A4%87%E4%BB%BD%E5%A4%9A%E4%B8%AA%E5%8D%95%E5%BA%93"><span class="toc-number">3.1.4.</span> <span class="toc-text">[-B db1 db2 db3 备份多个单库]</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-3-%E9%AB%98%E7%BA%A7%E5%8F%82%E6%95%B0%E5%BA%94%E7%94%A8"><span class="toc-number">3.1.5.</span> <span class="toc-text">3.1.3 高级参数应用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E5%8F%82%E6%95%B01%E4%BD%BF%E7%94%A8%EF%BC%88%E5%BF%85%E9%A1%BB%E8%A6%81%E5%8A%A0%EF%BC%89"><span class="toc-number">3.1.6.</span> <span class="toc-text">特殊参数1使用（必须要加）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#F"><span class="toc-number">3.1.7.</span> <span class="toc-text">-F</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%80%93master-data-2"><span class="toc-number">3.1.8.</span> <span class="toc-text">–master-data&#x3D;2</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5"><span class="toc-number">4.</span> <span class="toc-text">4. 备份策略</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">无题</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-02-19T11:48:32.188Z" title="发表于 2021-02-19 19:48:32">2021-02-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-03-12T07:02:41.660Z" title="更新于 2021-03-12 15:02:41">2021-03-12</time></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>生产环境中，为了防止硬件故障、软件故障、自然灾害、误操作等各种原因导致的数据库数据丢失后能恢复到事故之前的状态，需要对数据库进行备份和恢复操作。</p>
+<a id="more"></a>
+
+<h2 id="1-备份类型"><a href="#1-备份类型" class="headerlink" title="1. 备份类型"></a>1. 备份类型</h2><p>在运维中需定期备份 MySQL，为崩溃后的恢复数据做准备。一般分为冷备和热备，冷备就是停掉 MySQL 服务，直接复制文件，但是在生产环境中，很少有机会这样，一般都是在 MySQL 提供服务的时候就进行备份，因此这牵扯到数据一致性的问题。</p>
+<ol>
+<li><p>热备</p>
+<blockquote>
+<p>在数据库正常业务时,备份数据,并且能够一致性恢复(只能是 innodb)<br>对业务影响非常小<br>热备会备份开始前及备份过程中产生的新数据。</p>
+</blockquote>
+</li>
+<li><p>温备</p>
+<blockquote>
+<p>锁表备份,只能查询不能修改(myisam)<br>影响到写入操作</p>
+</blockquote>
+</li>
+<li><p>冷备</p>
+<blockquote>
+<p>关闭数据库业务,数据库没有任何变更的情况下,进行备份数据.<br>业务停止</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="2-备份方式和工具介绍"><a href="#2-备份方式和工具介绍" class="headerlink" title="2. 备份方式和工具介绍"></a>2. 备份方式和工具介绍</h2><h3 id="2-1-逻辑备份工具"><a href="#2-1-逻辑备份工具" class="headerlink" title="2.1. 逻辑备份工具"></a>2.1. 逻辑备份工具</h3><p>基于 SQL 语句进行备份</p>
+<h4 id="2-1-1-mysqldump"><a href="#2-1-1-mysqldump" class="headerlink" title="2.1.1. mysqldump"></a>2.1.1. mysqldump</h4><p>mysql 服务自带的备份工具。mysqldump 是一个逻辑备份工具，它的本质是将数据库转为可执行 SQL 脚本。可以用来做完全备份和部分备份，支持 InnoDB 存储引擎的热备功能，MyISAM 存储引擎的温备功能。</p>
+<p>mysqlbinlog  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">优点：</span><br><span class="line">1.不需要下载安装</span><br><span class="line">2.备份出来的是 SQL，文本格式，可读性高,便于备份处理</span><br><span class="line">3.压缩比较高，节省备份的磁盘空间</span><br><span class="line">缺点</span><br><span class="line">依赖于数据库引擎，需要从磁盘把数据读出然后转换成 SQL 进行转储，比较耗费资源，数据量大的话效率较低  </span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-物理备份工具"><a href="#2-2-物理备份工具" class="headerlink" title="2.2. 物理备份工具"></a>2.2. 物理备份工具</h3><p>基于磁盘数据文件备份</p>
+<h4 id="2-2-1-cp"><a href="#2-2-1-cp" class="headerlink" title="2.2.1. cp"></a>2.2.1. cp</h4><p>这是一种物理备份，这种备份的原理是基于快照实现的，快照（请求一个全局锁），之后立即释放锁，达到几乎热备的效果。需要注意的是不能仅仅只备份数据，要同时备份事务日志，并且要求数据和日志在同一逻辑卷。</p>
+<h4 id="2-2-2-xtrabackup-XBK-percona-第三方"><a href="#2-2-2-xtrabackup-XBK-percona-第三方" class="headerlink" title="2.2.2. xtrabackup(XBK) percona 第三方"></a>2.2.2. xtrabackup(XBK) percona 第三方</h4><p>由 Percona 开发的很强大的开源工具，支持对 InnoDB 做热备，物理备份工具。 </p>
+<h4 id="2-2-3-MySQL-Enterprise-Backup-MEB"><a href="#2-2-3-MySQL-Enterprise-Backup-MEB" class="headerlink" title="2.2.3. MySQL Enterprise Backup(MEB)"></a>2.2.3. MySQL Enterprise Backup(MEB)</h4><h4 id="2-2-4-总结"><a href="#2-2-4-总结" class="headerlink" title="2.2.4. 总结"></a>2.2.4. 总结</h4><p>优点</p>
+<ul>
+<li>类似于直接 cp 数据文件，不需要管逻辑结构，相对来说性能较高</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>可读性差</li>
+<li>压缩比低，需要更多磁盘空间</li>
+</ul>
+<h2 id="3-备份工具使用"><a href="#3-备份工具使用" class="headerlink" title="3. 备份工具使用"></a>3. 备份工具使用</h2><h3 id="3-1-mysqldump-逻辑备份的客户端工具"><a href="#3-1-mysqldump-逻辑备份的客户端工具" class="headerlink" title="3.1. mysqldump (逻辑备份的客户端工具)"></a>3.1. mysqldump (逻辑备份的客户端工具)</h3><h4 id="3-1-1-客户端通用参数"><a href="#3-1-1-客户端通用参数" class="headerlink" title="3.1.1 客户端通用参数"></a>3.1.1 客户端通用参数</h4><p>本地备份</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜  mysqldump -uroot -pchen3494269 -S &#x2F;data&#x2F;tmp&#x2F;bak.sql</span><br></pre></td></tr></table></figure>
+
+<p>远程备份</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜  mysqldump -uroot -pchen3494269  -h 10.0.0.51 -P3306 -S &#x2F;data&#x2F;tmp&#x2F;bak.sql</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-1-2-备份专用基本参数"><a href="#3-1-2-备份专用基本参数" class="headerlink" title="3.1.2 备份专用基本参数"></a>3.1.2 备份专用基本参数</h4><h4 id="A-全备参数"><a href="#A-全备参数" class="headerlink" title="[-A 全备参数]"></a>[-A 全备参数]</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜  mysqldump -uroot -pchen3494269 -A &gt; .&#x2F;backup&#x2F;full.sql</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>常规备份时要加 –set-gtid-purged=OFF,解决备份时的警告</p>
+<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -uroot -p123 -A  --set-gtid-purged&#x3D;OFF  &gt;&#x2F;backup&#x2F;full.sql</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>构建主从时,做的备份,不需要加这个参数</p>
+<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -uroot -p123 -A  --set-gtid-purged&#x3D;ON &gt;&#x2F;backup&#x2F;full.sql</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+</ul>
+<h4 id="B-db1-db2-db3-备份多个单库"><a href="#B-db1-db2-db3-备份多个单库" class="headerlink" title="[-B db1 db2 db3 备份多个单库]"></a>[-B db1 db2 db3 备份多个单库]</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">说明：生产中需要备份，生产相关的库和 MySQL 库</span><br><span class="line">➜  mysqldump -uroot -pchen3494269 -B attack siros &gt; .&#x2F;siros_attack.sql</span><br><span class="line">mysqldump: [Warning] Using a password on the command line interface can be insecure.</span><br><span class="line">mysqldump -uroot -pchen3494269 -B attack siros &gt; .&#x2F;siros_attack.sql  0.32s user 0.18s system 38% cpu 1.308 total</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-1-3-高级参数应用"><a href="#3-1-3-高级参数应用" class="headerlink" title="3.1.3 高级参数应用"></a>3.1.3 高级参数应用</h4><h4 id="特殊参数1使用（必须要加）"><a href="#特殊参数1使用（必须要加）" class="headerlink" title="特殊参数1使用（必须要加）"></a>特殊参数1使用（必须要加）</h4><ul>
+<li><code>-R</code>            备份存储过程及函数</li>
+<li><code>--triggers</code>    备份触发器</li>
+<li><code>-E</code>            备份事件</li>
+</ul>
+<figure class="highlight zsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -uroot -pchen3494269 siros satcat tle -R --triggers &gt; tle_satcat_of_siroswithtriggers.sql</span><br></pre></td></tr></table></figure>
+
+<h4 id="F"><a href="#F" class="headerlink" title="-F"></a>-F</h4><p>在备份开始时,刷新一个新 binlog 日志</p>
+<figure class="highlight zsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -uroot -pchen3494269 siros satcat tle -F -R --triggers &gt; tle_satcat_of_siroswithtriggers2.sql</span><br></pre></td></tr></table></figure>
+
+<h4 id="–master-data-2"><a href="#–master-data-2" class="headerlink" title="–master-data=2"></a>–master-data=2</h4><p>以注释的形式,保存备份开始时间点的 binlog 的状态信息(记录 position 开始号和 gtid 的所有号)<br>不论是何种引擎, 都会锁表，除非配合 <code>--single-transaction</code> 参数使用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">➜ mysqldump -uroot -pchen3494269 siros satcat tle -R --triggers --master-data&#x3D;2 --single-transaction &gt; tle_satcat_of_siroswithtrigger_masterdata.sql</span><br></pre></td></tr></table></figure>
+
+<p>功能：</p>
+<ol>
+<li><p>在备份时，会自动记录，二进制日志文件名和位置号</p>
+<ul>
+<li><p>0: 默认值</p>
+</li>
+<li><p>1: 以 change master to 命令形式，可以用作主从复制</p>
+</li>
+<li><p>2: 以注释的形式记录，备份时刻的文件名 +postion 号</p>
+</li>
+</ul>
+<img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-19 下午9.21.58.png" alt="截屏2021-02-19 下午9.21.58" style="zoom:50%;" />
+</li>
+<li><p>自动锁表</p>
+<ul>
+<li><p>不使用 <code>--single-transaction</code> 时，实现的是温备，何种引擎都会锁表。配合 <code>--single-transaction</code> 只对非 InnoDB 表进行锁表备份。</p>
+</li>
+<li><p>InnoDB 表进行 “热备”(实际上是实现快照备份), 非真正热备，只备份备份开始时刻数据， 备份过程中产生的新数据不会备份。</p>
+</li>
+<li><p>使用该参数后记录有备份开始时刻的 position,配合 mysqlbinlog 恢复数据时，需要找出备份开始到数据库异常时刻的所有 binlog 信息，然后配合全备即可恢复所有</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-备份策略"><a href="#4-备份策略" class="headerlink" title="4. 备份策略"></a>4. 备份策略</h2><p>备份策略一般都是[全量+差异+binlogs]或者[全量+增量+binlogs]。需要注意到的是，如果需要更完整的备份数据，还需要依靠binlogs（二进制日志）。binlogs是MySQL中最重要的日志之一，它记录了所有的 DDL和 DML (除了数据查询语句)语句，以事件形式记录。这里强烈建议在生产环境中，将数据与二进制日志分开存放并对二进制日志也做备份。</p>
+<p><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-19 下午9.27.49.png" alt="截屏2021-02-19 下午9.27.49" style="zoom:50%;" /><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-20 上午8.50.29.png" alt="截屏2021-02-20 上午8.50.29" style="zoom:50%;" /></p>
+<p><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-20 上午8.56.25.png" alt="截屏2021-02-20 上午8.56.25" style="zoom:50%;" /><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-20 上午8.59.24.png" alt="截屏2021-02-20 上午8.59.24" style="zoom:50%;" /><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-20 上午9.07.51.png" alt="截屏2021-02-20 上午9.07.51" style="zoom:50%;" /><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-20 上午9.10.25.png" alt="截屏2021-02-20 上午9.10.25" style="zoom:50%;" /><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-20 上午9.20.39.png" alt="截屏2021-02-20 上午9.12.54" style="zoom:50%;" /><img src="/Users/joker/Library/Application Support/typora-user-images/截屏2021-02-20 上午9.40.32.png" alt="截屏2021-02-20 上午9.40.32" style="zoom:50%;" /></p>
+<ol start="3">
+<li></li>
+</ol>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2021/02/19/MySQL%E5%A4%87%E4%BB%BD/">http://joccer.gitee.io/2021/02/19/MySQL%E5%A4%87%E4%BB%BD/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2021/02/20/%E5%88%9B%E5%BB%BA%E6%95%B0%E6%8D%AE%E5%BA%93&amp;%E8%A1%A8/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info"></div></div></a></div><div class="next-post pull-right"><a href="/2021/02/19/hello_binlog/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info"></div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/6d85e03d.js","daovoice")
+</script><script>var isChatBtn = true
+daovoice('init', {
+  app_id: '6d85e03d',},{
+  launcher: { 
+     disableLauncherIcon: isChatBtn // 悬浮 ICON 是否显示
+  },
+});
+daovoice('update');
+
+if (isChatBtn) {
+  var chatBtnFn = () => {
+    var chatBtn = document.getElementById("chat_btn")
+    chatBtn.addEventListener("click", function(){
+      daovoice('show')
+    });
+  }
+  chatBtnFn()
+} else {
+  if (false) {
+    function chatBtnHide () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: true // 悬浮 ICON 是否显示
+        },
+      });
+    }
+    function chatBtnShow () {
+      daovoice('update', {},{
+        launcher: { 
+        disableLauncherIcon: false // 悬浮 ICON 是否显示
+        },
+      });
+    }
+  }
+}</script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
