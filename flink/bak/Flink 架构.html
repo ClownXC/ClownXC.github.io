@@ -1,0 +1,257 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分类: Flink | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="1. 概述当 Flink 集群启动后，首先会启动一个 JobManger 和一个或多个的 TaskManager。由 Client 提交任务给 JobManager，JobManager 再调度任务到各个 TaskManager 去执行，然后 TaskManager 将心跳和统计信息汇报给 JobManager。TaskManager 之间以流的形式进行数据的传输。上述三者均为独立的 JVM 进程">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Flink 架构">
+<meta property="og:url" content="http://joccer.gitee.io/flink/bak/Flink%20%E6%9E%B6%E6%9E%84.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="1. 概述当 Flink 集群启动后，首先会启动一个 JobManger 和一个或多个的 TaskManager。由 Client 提交任务给 JobManager，JobManager 再调度任务到各个 TaskManager 去执行，然后 TaskManager 将心跳和统计信息汇报给 JobManager。TaskManager 之间以流的形式进行数据的传输。上述三者均为独立的 JVM 进程">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-12-06T05:01:13.000Z">
+<meta property="article:modified_time" content="2021-05-24T06:41:42.997Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/flink/bak/Flink%20%E6%9E%B6%E6%9E%84"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-05-24 14:41:42'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">Flink 架构</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>当 Flink 集群启动后，首先会启动一个 JobManger 和一个或多个的 TaskManager。由 Client 提交任务给 JobManager，JobManager 再调度任务到各个 TaskManager 去执行，然后 TaskManager 将心跳和统计信息汇报给 JobManager。TaskManager 之间以流的形式进行数据的传输。上述三者均为独立的 JVM 进程。</p>
+<img src="/images/flink/00001.png" alt="截屏2021-05-23 下午4.08.19" style="zoom:50%;" />
+
+
+
+<h2 id="2-Client"><a href="#2-Client" class="headerlink" title="2. Client"></a>2. <strong>Client</strong></h2><p>Client 为提交 Job 的客户端，可以是运行在任何机器上（与 JobManager 环境连通即可）。提交 Job 后，Client 可以结束进程（Streaming的任务），也可以不结束并等待结果返回。</p>
+<h2 id="3-JobManager"><a href="#3-JobManager" class="headerlink" title="3. JobManager"></a>3. JobManager</h2><p><strong>JobManager 负责整个 Flink 集群任务的调度以及资源的管理，从客户端中获取提交的 Flink Job，然后根据集群中 TaskManager 上 TaskSlot 的使用情况，为提交的Job 分配相应的 TaskSlot 资源并命令 TaskManager 启动从客户端中获取的应用。</strong></p>
+<p><strong>JobManager 相当于整个集群的 Master 节点，且整个集群有且只有一个活跃的 JobManager ，负责整个集群的任务调度和资源管理。</strong></p>
+<h2 id="4-TaskManager"><a href="#4-TaskManager" class="headerlink" title="4. TaskManager"></a>4. TaskManager</h2><p><strong>TaskManager 相当于整个集群的 Slave 节点，负责具体的任务执行和对应任务在每个节点上的资源申请和管理。</strong></p>
+<p>客户端通过将编写好的 Flink 应用编译打包，提交到 JobManager，然后 JobManager 会根据已注册在 JobManager 中 TaskManager 的资源情况，将任务分配给有资源的 TaskManager节点，然后启动并运行任务。</p>
+<p>TaskManager 从 JobManager 接收 Job然后使用 Slot 资源启动 Task，建立数据接入的网络连接，接收数据并开始数据处理。同时 TaskManager 之间的数据交互都是通过数据流的方式进行的。</p>
+<h3 id="4-1-Slot"><a href="#4-1-Slot" class="headerlink" title="4.1. Slot"></a>4.1. Slot</h3><p>TaskManager 是从 JobManager 处接收需要部署的 Task，任务能配置的最大并行度由 TaskManager 上可用的 Slot 决定。每个任务代表分配给任务槽的一组资源，Slot 在 Flink 里面可以认为是资源组，Flink 将每个任务分成子任务并且将这些子任务分配到 Slot 中，这样就可以并行的执行程序。</p>
+<p><img src="/images/flink/00004.png" alt="截屏2021-05-23 下午4.09.33"></p>
+<h4 id="4-1-1-Slot-和-Parallelism-的关系"><a href="#4-1-1-Slot-和-Parallelism-的关系" class="headerlink" title="4.1.1. Slot 和 Parallelism 的关系"></a>4.1.1. Slot 和 Parallelism 的关系</h4><ol>
+<li><p>Slot 是指 TaskManager 最大能并发执行的能力</p>
+</li>
+<li><p>parallelism 是指 TaskManager 实际使用的并发能力</p>
+</li>
+<li><p>parallelism 是可配置、可指定的</p>
+</li>
+</ol>
+<h4 id="4-1-2-Flink-Job-并行度设置"><a href="#4-1-2-Flink-Job-并行度设置" class="headerlink" title="4.1.2.  Flink Job 并行度设置"></a>4.1.2.  Flink Job 并行度设置</h4><ol>
+<li><p>Source 端并行度的配置</p>
+<p>如果数据源端是 Kafka，在出现作业消费不及时的时候，首先看下 Kafka 的监控是不是现在生产者生产的数据上涨速度较快，从而导致作业目前的消费速度就是跟不上 Kafka 生产者的生产速度，如果是这样的话，那么就得查看作业的并行度和 Kafka 的分区数是否一致，如果小于 Kafka 的分区数，那么可以增大并行度至 Kafka 的分区数，然后再观察作业消费速度是否可以跟上数据生产速度；如果已经等于 Kafka 的分区数了，那得考虑下是否 Kafka 要扩大分区，但是这样可能会带来 Kafka 其他的问题</p>
+<blockquote>
+<p>Kafka 中数据出现堆积的话，如果数据不重要，但是又要保证数据的及时性，可以修改作业让作业始终从最新的数据开始消费，丢弃之前堆积的数据，这样就可以保证数据的及时性。</p>
+</blockquote>
+<p>在 Source 端设置并行度的话，如果数据源是 Kafka 的话，建议并行度不要超过 Kafka 的分区数，因为一个并行度会去处理一至多个分区的数据，如果设置过多的话，会出现部分并行度空闲。如果是其他的数据源，可以根据实际情况合理增大并行度来提高作业的处理数据能力</p>
+</li>
+<li><p>中间 Operator 并行度的配置</p>
+<p>数据从 Source 端流入后，通常会进行一定的数据转换、聚合才能够满足需求，在数据转换中可能会和第三方系统进行交互，在交互的过程中可能会因为网络原因或者第三方服务原因导致有一定的延迟，从而导致这个数据交互的算子处理数据的吞吐量会降低，可能会造成反压，从而会影响上游的算子的消费。那么在这种情况下这些与第三方系统有交互的算子得稍微提高并行度，防止出现这种反压问题</p>
+<blockquote>
+<p>除了这种与第三方服务做交互的外，另外可能的性能瓶颈也会出现在这类算子中，比如 Kafka 过来的数据是 JSON 串的 String，然后需要转换成对象，在大数据量的情况下这个转换也是比较耗费性能的。</p>
+</blockquote>
+</li>
+<li><p>Sink 端并行度的配置</p>
+<p>Sink 端是数据流向下游的地方，可以根据 Sink 端的数据量进行评估</p>
+<ul>
+<li><p>有的作业是 Source 端的数据量最大，然后数据量不断的变少，最后到 Sink 端的数据就一点点了，比较常见的就是监控告警的场景。Source 端的数据是海量的，但是通过逐层的过滤和转换，到最后判断要告警的数据其实已经减少很多很多了，那么在最后的这个地方就可以将并行度设置的小一些。</p>
+</li>
+<li><p>有的作业在 Source 端的数据量是最小的，拿到 Source 端流过来的数据后做了细粒度的拆分，那么数据量就不断的增加了，到 Sink 端的数据量就非常非常的大了。那么在 Sink 到下游的存储中间件的时候就需要提高并行度。</p>
+</li>
+<li><p>有的作业 Sink 端也是要与下游的服务进行交互，并行度还得根据下游的服务抗压能力来设置，如果在 Flink Sink 这端的数据量过大的话，然后在 Sink 处并行度也设置的很大，但是下游的服务完全撑不住这么大的并发写入，也是可能会造成下游服务直接被写挂的，下游服务可能还要对外提供一些其他的服务，如果稳定性不能保证的话，会造成很大的影响，所以最终还是要在 Sink 处的并行度做一定的权衡。</p>
+</li>
+</ul>
+</li>
+<li><p>Operator Chain</p>
+<p>对于一般的作业，可以尽量让算子的并行度从 Source 端到 Sink 端都保持一致，这样可以尽可能的让 Job 中的算子进行 chain 在一起，形成链，数据在链中可以直接传输，而不需要再次进行序列化与反序列化，这样带来的性能消耗就会得到降低</p>
+</li>
+</ol>
+<h2 id="5-Flink-ON-Yarn"><a href="#5-Flink-ON-Yarn" class="headerlink" title="5. Flink ON Yarn"></a>5. Flink ON Yarn</h2><img src="/images/flink/8877.png" alt="截屏2021-05-24 下午2.38.37" style="zoom:50%;" />
+
+<ol>
+<li>判断YARN_CONF_DIR,HADOOP_CONF_DIR或HADOOP_CONF_PATH等环境变量是否设置了（按照这些变量的顺序判断）。如果它们中有一个被设置了，那么就会读取其中的配置。<br>如果上面的规则失败了，那么客户端将会使用HADOOP_HOME环境变量。如果这个环境变量设置了，客户端将会尝试访问$HADOOP_HOME/etc/hadoop 或者 $HADOOP_HOME/conf路径下文件。</li>
+<li>启动一个新的 Flink YARN session，客户端首先判断所请求的资源(容器和内存)是否可用。在那之后，它会把包含了Flink以及相关配置的jar包上传到HDFS</li>
+<li>客户端的下一步是请求一个 YARN 容器来启动 ApplicationMaster。因为客户端已经将配置和jar文件作为资源向容器注册了，所以运行在特定机器上的 NodeManager 会负责准备容器，一旦上面的步骤完成，ApplicationMaster (AM)将会被启动。</li>
+<li>JobManager 和 AM 是运行在同一个容器中的，一旦它们成功地启动了，AM 知道 JobManager 的地址，它会为TaskManager 生成一个新的 Flink 配置文件。这些新的配置文件同样会被上传到HDFS上。此外，AM 将负责为 Flink 提供 WEB 界面服务，Flink 用来提供服务的端口是由用户 + 应用程序 id 作为偏移配置决定的。这样的措施使得用户能够并行地执行多个 Flink YARN session。</li>
+<li>AM 开始为 Flink 的 TaskManager 分配容器，这会从 HDFS 下载 jar 文件和修改过的配置文件。这些步骤完成，Flink服务就在YARN上启动完成并准备接受任务了。</li>
+</ol>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

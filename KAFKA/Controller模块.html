@@ -1,0 +1,230 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>周晓晨 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Controller 是 Kafka 最核心的组件。一方面，它要为集群中的所有主题分区选举领导者副本；另一方面，它还承载着集群的全部元数据信息，并负责将这些元数据信息同步到其他 Broker 上">
+<meta property="og:type" content="website">
+<meta property="og:title" content="周晓晨">
+<meta property="og:url" content="http://joccer.gitee.io/KAFKA/Controller%E6%A8%A1%E5%9D%97.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Controller 是 Kafka 最核心的组件。一方面，它要为集群中的所有主题分区选举领导者副本；另一方面，它还承载着集群的全部元数据信息，并负责将这些元数据信息同步到其他 Broker 上">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-05-24T13:58:13.488Z">
+<meta property="article:modified_time" content="2021-03-06T08:58:19.820Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/KAFKA/Controller%E6%A8%A1%E5%9D%97"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-03-06 16:58:19'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">周晓晨</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><p>Controller 是 Kafka 最核心的组件。一方面，它要为集群中的所有主题分区选举领导者副本；另一方面，它还承载着集群的全部元数据信息，并负责将这些元数据信息同步到其他 Broker 上</p>
+<a id="more"></a>
+
+<h2 id="1-集群元数据"><a href="#1-集群元数据" class="headerlink" title="1. 集群元数据"></a>1. 集群元数据</h2><p>集群 Broker 是不会与 ZooKeeper 直接交互去获取元数据的。相反地，它们总是与 Controller 进行通信，获取和更新最新的集群数据。</p>
+<h2 id="2-ControllerContext"><a href="#2-ControllerContext" class="headerlink" title="2. ControllerContext"></a>2. ControllerContext</h2><p>Controller 组件的源代码位于 core 包的 src/main/scala/kafka/controller 路径下，这里面有很多 Scala 源文件，ControllerContext 类就位于这个路径下的 ControllerContext.scala 文件中,它定义了前面提到的所有元数据信息，以及许多实用的工具方法。比如，获取集群上所有主题分区对象的 allPartitions 方法、获取某主题分区副本列表的 partitionReplicaAssignment 方法，等等。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ControllerContext</span> </span>&#123;</span><br><span class="line">  <span class="keyword">val</span> stats = <span class="keyword">new</span> <span class="type">ControllerStats</span> <span class="comment">// Controller 统计信息类 </span></span><br><span class="line">  <span class="keyword">var</span> offlinePartitionCount = <span class="number">0</span>   <span class="comment">// 离线分区计数器</span></span><br><span class="line">  <span class="keyword">val</span> shuttingDownBrokerIds = mutable.<span class="type">Set</span>.empty[<span class="type">Int</span>]  <span class="comment">// 关闭中Broker的Id列表</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> liveBrokers = mutable.<span class="type">Set</span>.empty[<span class="type">Broker</span>] <span class="comment">// 当前运行中Broker对象列表</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> liveBrokerEpochs = mutable.<span class="type">Map</span>.empty[<span class="type">Int</span>, <span class="type">Long</span>]   <span class="comment">// 运行中Broker Epoch列表</span></span><br><span class="line">  <span class="keyword">var</span> epoch: <span class="type">Int</span> = <span class="type">KafkaController</span>.<span class="type">InitialControllerEpoch</span>   <span class="comment">// Controller当前Epoch值</span></span><br><span class="line">  <span class="comment">// Controller 对应 ZooKeeper 节点的 Epoch 值</span></span><br><span class="line">  <span class="keyword">var</span> epochZkVersion: <span class="type">Int</span> = <span class="type">KafkaController</span>.<span class="type">InitialControllerEpochZkVersion</span>  </span><br><span class="line">  <span class="keyword">val</span> allTopics = mutable.<span class="type">Set</span>.empty[<span class="type">String</span>]  <span class="comment">// 集群主题列表</span></span><br><span class="line">  <span class="comment">// 主题分区的副本列表</span></span><br><span class="line">  <span class="keyword">val</span> partitionAssignments = mutable.<span class="type">Map</span>.empty[<span class="type">String</span>, mutable.<span class="type">Map</span>[<span class="type">Int</span>, <span class="type">ReplicaAssignment</span>]]  </span><br><span class="line">  <span class="comment">// 主题分区的Leader/ISR副本信息</span></span><br><span class="line">  <span class="keyword">val</span> partitionLeadershipInfo = mutable.<span class="type">Map</span>.empty[<span class="type">TopicPartition</span>, <span class="type">LeaderIsrAndControllerEpoch</span>]  </span><br><span class="line">  <span class="keyword">val</span> partitionsBeingReassigned = mutable.<span class="type">Set</span>.empty[<span class="type">TopicPartition</span>]  <span class="comment">// 正处于副本重分配过程的主题分区列表</span></span><br><span class="line">  <span class="keyword">val</span> partitionStates = mutable.<span class="type">Map</span>.empty[<span class="type">TopicPartition</span>, <span class="type">PartitionState</span>] <span class="comment">// 主题分区状态列表 </span></span><br><span class="line">  <span class="keyword">val</span> replicaStates = mutable.<span class="type">Map</span>.empty[<span class="type">PartitionAndReplica</span>, <span class="type">ReplicaState</span>]  <span class="comment">// 主题分区的副本状态列表</span></span><br><span class="line">  <span class="keyword">val</span> replicasOnOfflineDirs = mutable.<span class="type">Map</span>.empty[<span class="type">Int</span>, <span class="type">Set</span>[<span class="type">TopicPartition</span>]]  <span class="comment">// 不可用磁盘路径上的副本列表</span></span><br><span class="line">  <span class="keyword">val</span> topicsToBeDeleted = mutable.<span class="type">Set</span>.empty[<span class="type">String</span>]  <span class="comment">// 待删除主题列表</span></span><br><span class="line">  <span class="keyword">val</span> topicsWithDeletionStarted = mutable.<span class="type">Set</span>.empty[<span class="type">String</span>]  <span class="comment">// 已开启删除的主题列表</span></span><br><span class="line">  <span class="keyword">val</span> topicsIneligibleForDeletion = mutable.<span class="type">Set</span>.empty[<span class="type">String</span>]  <span class="comment">// 暂时无法执行删除的主题列表</span></span><br><span class="line">  ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-1-ControllerStats"><a href="#2-1-ControllerStats" class="headerlink" title="2.1. ControllerStats"></a>2.1. ControllerStats</h3><p>表征的是 Controller 的一些统计信息。</p>
+<p>目前，源码中定义了两大类统计指标：</p>
+<ol>
+<li><p>UncleanLeaderElectionsPerSec </p>
+<blockquote>
+<p>计算 Controller 每秒执行的 Unclean Leader 选举数量，通常情况下，执行 Unclean Leader 选举可能造成数据丢失，一般不建议开启它。一旦开启，你就需要时刻关注这个监控指标的值，确保 Unclean Leader 选举的速率维持在一个很低的水平，否则会出现很多数据丢失的情况</p>
+</blockquote>
+</li>
+<li><p>Controller 事件状态的执行速率与时间</p>
+<blockquote>
+<p>统计所有 Controller 状态的速率和时间信息，单位是毫秒。当前，Controller 定义了很多事件，比如，TopicDeletion 是执行主题删除的 Controller 事件、ControllerChange 是执行 Controller 重选举的事件。ControllerStats 的这个指标通过在每个事件名后拼接字符串 RateAndTimeMs 的方式，为每类 Controller 事件都创建了对应的速率监控指标。</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="2-2-offlinePartitionCount"><a href="#2-2-offlinePartitionCount" class="headerlink" title="2.2. offlinePartitionCount"></a>2.2. offlinePartitionCount</h3><p>该字段统计集群中所有离线或处于不可用状态的主题分区数量</p>
+<p>所谓的不可用状态，即 <code>Leader=-1</code> 的情况</p>
+<p>ControllerContext 中的 updatePartitionStateMetrics 方法根据给定主题分区的当前状态和目标状态，来判断该分区是否是离线状态的分区。如果是，则累加 offlinePartitionCount 字段的值，否则递减该值</p>
+<h3 id="2-3-shuttingDownBrokerIds"><a href="#2-3-shuttingDownBrokerIds" class="headerlink" title="2.3. shuttingDownBrokerIds"></a>2.3. shuttingDownBrokerIds</h3><p>该字段保存所有正在关闭中的 Broker ID 列表。当 Controller 在管理集群 Broker 时，它要依靠这个字段来甄别 Broker 当前是否已关闭，因为处于关闭状态的 Broker 是不适合执行某些操作的，如分区重分配（Reassignment）以及主题删除等。另外，Kafka 必须要为这些关闭中的 Broker 执行很多清扫工作，Controller 定义了一个 onBrokerFailure 方法，它就是用来做这个的。</p>
+<h3 id="2-4-liveBrokers"><a href="#2-4-liveBrokers" class="headerlink" title="2.4. liveBrokers"></a>2.4. liveBrokers</h3><p>该字段保存当前所有运行中的 Broker 对象。每个 Broker 对象就是一个 <code>&lt;Id, EndPoint, 机架信息&gt;</code> 的三元组。</p>
+<p>ControllerContext 中定义了很多方法来管理该字段，如 addLiveBrokersAndEpochs、removeLiveBrokers 和 updateBrokerMetadata 等</p>
+<h3 id="2-5-liveBrokerEpochs"><a href="#2-5-liveBrokerEpochs" class="headerlink" title="2.5. liveBrokerEpochs"></a>2.5. liveBrokerEpochs</h3><p>该字段保存所有运行中 Broker 的 Epoch 信息。Kafka 使用 Epoch 数据防止 Zombie Broker，即一个非常老的 Broker 被选举成为 Controller。</p>
+<p>liveBrokerEpochs 的 keySet 方法返回 Broker 序号列表，然后从中移除关闭中的 Broker 序号，剩下的自然就是处于运行中的 Broker 序号列表了。</p>
+<h3 id="2-6-epoch-amp-epochZkVersion"><a href="#2-6-epoch-amp-epochZkVersion" class="headerlink" title="2.6. epoch &amp; epochZkVersion"></a>2.6. <code>epoch</code> &amp; <code>epochZkVersion</code></h3><p>epoch 实际上就是 ZooKeeper 中 /controller_epoch 节点的值，你可以认为它就是 Controller 在整个 Kafka 集群的版本号，而 epochZkVersion 实际上是 /controller_epoch 节点的 dataVersion 值。Kafka 使用 epochZkVersion 来判断和防止 Zombie Controller。这也就是说，原先在老 Controller 任期内的 Controller 操作在新 Controller 不能成功执行，因为新 Controller 的 epochZkVersion 要比老 Controller 的大。</p>
+<h3 id="2-7-allTopics"><a href="#2-7-allTopics" class="headerlink" title="2.7. allTopics"></a>2.7. allTopics</h3><p>该字段保存集群上所有的主题名称。每当有主题的增减，Controller 就要更新该字段的值。</p>
+<h3 id="2-8-partitionAssignments"><a href="#2-8-partitionAssignments" class="headerlink" title="2.8. partitionAssignments"></a>2.8. partitionAssignments</h3><p>该字段保存所有主题分区的副本分配情况。</p>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

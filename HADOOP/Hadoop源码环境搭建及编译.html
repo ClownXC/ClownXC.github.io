@@ -1,0 +1,388 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>周晓晨 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Hadoop源码环境搭建及编译一、课前准备 下载hadoop2.7.0源代码  二、课堂主题 围绕Hadoop源码环境搭建及编译讲解  三、课堂目标 搭建Hadoop源码阅读环境 学会如何编译Hadoop源码  四、知识要点1. 搭建windows下Hadoop源码阅读环境 以windows下为例（linux下的类似）  1.1 下载对应版本的Hadoop源码包 此处以Hadoop-2.7.0为例">
+<meta property="og:type" content="website">
+<meta property="og:title" content="周晓晨">
+<meta property="og:url" content="http://joccer.gitee.io/HADOOP/Hadoop%E6%BA%90%E7%A0%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E5%8F%8A%E7%BC%96%E8%AF%91.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Hadoop源码环境搭建及编译一、课前准备 下载hadoop2.7.0源代码  二、课堂主题 围绕Hadoop源码环境搭建及编译讲解  三、课堂目标 搭建Hadoop源码阅读环境 学会如何编译Hadoop源码  四、知识要点1. 搭建windows下Hadoop源码阅读环境 以windows下为例（linux下的类似）  1.1 下载对应版本的Hadoop源码包 此处以Hadoop-2.7.0为例">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-05-24T13:15:13.871Z">
+<meta property="article:modified_time" content="2019-09-04T07:57:12.000Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/HADOOP/Hadoop%E6%BA%90%E7%A0%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E5%8F%8A%E7%BC%96%E8%AF%91"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2019-09-04 15:57:12'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">周晓晨</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><h1 id="Hadoop源码环境搭建及编译"><a href="#Hadoop源码环境搭建及编译" class="headerlink" title="Hadoop源码环境搭建及编译"></a>Hadoop源码环境搭建及编译</h1><h2 id="一、课前准备"><a href="#一、课前准备" class="headerlink" title="一、课前准备"></a>一、课前准备</h2><ol>
+<li>下载hadoop2.7.0源代码</li>
+</ol>
+<h2 id="二、课堂主题"><a href="#二、课堂主题" class="headerlink" title="二、课堂主题"></a>二、课堂主题</h2><ol>
+<li>围绕Hadoop源码环境搭建及编译讲解</li>
+</ol>
+<h2 id="三、课堂目标"><a href="#三、课堂目标" class="headerlink" title="三、课堂目标"></a>三、课堂目标</h2><ol>
+<li>搭建Hadoop源码阅读环境</li>
+<li>学会如何编译Hadoop源码</li>
+</ol>
+<h2 id="四、知识要点"><a href="#四、知识要点" class="headerlink" title="四、知识要点"></a>四、知识要点</h2><h3 id="1-搭建windows下Hadoop源码阅读环境"><a href="#1-搭建windows下Hadoop源码阅读环境" class="headerlink" title="1. 搭建windows下Hadoop源码阅读环境"></a>1. 搭建windows下Hadoop源码阅读环境</h3><blockquote>
+<p>以windows下为例（linux下的类似）</p>
+</blockquote>
+<h4 id="1-1-下载对应版本的Hadoop源码包"><a href="#1-1-下载对应版本的Hadoop源码包" class="headerlink" title="1.1 下载对应版本的Hadoop源码包"></a>1.1 下载对应版本的Hadoop源码包</h4><ol>
+<li><p>此处以Hadoop-2.7.0为例</p>
+</li>
+<li><p>进入Hadoop官网 <a target="_blank" rel="noopener" href="https://hadoop.apache.org/">https://hadoop.apache.org/</a>  按图操作</p>
+</li>
+</ol>
+<p><img src="assets/Image201907241207.png"></p>
+<ol start="3">
+<li><p>![](assets/Image201907241207 (2).png)</p>
+</li>
+<li><p>下载Hadoop 2.7.0源代码</p>
+</li>
+</ol>
+<p><img src="assets/Image201907241208.png"></p>
+<h4 id="1-2-源码导入IDEA"><a href="#1-2-源码导入IDEA" class="headerlink" title="1.2 源码导入IDEA"></a>1.2 源码导入IDEA</h4><ol>
+<li>将源代码解压到本地路径</li>
+<li>将源代码导入IDEA中；打开IDEA，并导入源码</li>
+</ol>
+<p><img src="assets/1563941707252.png" alt="1563941707252"></p>
+<ol start="3">
+<li>选择本地解压后的hadoop源码包；依次按图中步骤操作</li>
+</ol>
+<p><img src="assets/Image201907241216.png"></p>
+<p><img src="assets/Image201907241217.png"></p>
+<p><img src="assets/Image201907241219.png"></p>
+<p><img src="assets/Image201907241221.png"></p>
+<p><img src="assets/Image201907241222.png"></p>
+<p><img src="assets/Image201907241223.png"></p>
+<p><img src="assets/Image201907241224.png"></p>
+<ol start="4">
+<li>正在resolving dependencies 解决依赖</li>
+</ol>
+<p><img src="assets/Image2019072412241.png"></p>
+<p><img src="assets/Image201907241226.png"></p>
+<ol start="5">
+<li>源码导入成功</li>
+</ol>
+<p><img src="assets/Image201907241231.png"></p>
+<h3 id="2-编译Hadoop源码"><a href="#2-编译Hadoop源码" class="headerlink" title="2. 编译Hadoop源码"></a>2. 编译Hadoop源码</h3><blockquote>
+<p>编译源码最好是在linux平台，此处用CentOS 7.4平台编译源码</p>
+<p>使用<strong>root用户</strong>编译</p>
+<p>所有软件压缩包，放到**/opt/apps**目录</p>
+</blockquote>
+<h4 id="2-1-查看编译说明文件"><a href="#2-1-查看编译说明文件" class="headerlink" title="2.1 查看编译说明文件"></a>2.1 查看编译说明文件</h4><p>将hadoop-2.7.0-src.tar.gz源码包放到/opt目录下</p>
+<p>将源码包解压到/opt目录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 opt]# cd /opt/</span><br><span class="line">[root@node-01 opt]# tar -xzvf hadoop-2.7.0-src.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>进入解压出来的目录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 opt]# cd hadoop-2.7.0-src/</span><br><span class="line">[root@node-01 hadoop-2.7.0-src]# ls</span><br></pre></td></tr></table></figure>
+
+<p><img src="assets/Image201907241342.png"></p>
+<p>BUILDING.txt文件是编译hadoop源码的说明文件；打开文件，列出了编译hadoop源码时，要求软件及对应版本要求</p>
+<p><img src="assets/Image201907241346.png"></p>
+<p>要求在Unix系统下编译</p>
+<h4 id="2-2-安装JDK"><a href="#2-2-安装JDK" class="headerlink" title="2.2 安装JDK"></a>2.2 安装JDK</h4><p>要求版本：JDK1.7+</p>
+<p>确定JDK是否已经安装，要求JDK1.7或以上版本</p>
+<p><strong>若已经安装非系统自带的openjdk且是版本符合要求，则略过步骤“安装JDK”</strong>；运行下边命令进行确认</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 jdk1.8.0_201]# java -version</span><br><span class="line">java version &quot;1.8.0_201&quot;</span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_201-b09)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.201-b09, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<p>（使用root用户）卸载系统自带的openjdk</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 ~]# rpm -qa |grep java</span><br><span class="line">python-javapackages-3.4.1-11.el7.noarch</span><br><span class="line">java-1.8.0-openjdk-headless-1.8.0.161-2.b14.el7.x86_64</span><br><span class="line">tzdata-java-2018c-1.el7.noarch</span><br><span class="line">java-1.7.0-openjdk-1.7.0.171-2.6.13.2.el7.x86_64</span><br><span class="line">java-1.8.0-openjdk-1.8.0.161-2.b14.el7.x86_64</span><br><span class="line">javapackages-tools-3.4.1-11.el7.noarch</span><br><span class="line">java-1.7.0-openjdk-headless-1.7.0.171-2.6.13.2.el7.x86_64</span><br></pre></td></tr></table></figure>
+
+<p>忽略依赖卸载查询到的openjdk相关包</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rpm -e --nodeps python-javapackages-3.4.1-11.el7.noarch</span><br><span class="line">rpm -e --nodeps java-1.8.0-openjdk-headless-1.8.0.161-2.b14.el7.x86_64</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>上传自己的jdk解压，并配置环境变量</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf /opt/apps/jdk-8u201-linux-x64.tar.gz -C /opt/</span><br></pre></td></tr></table></figure>
+
+<p>打开<code>/etc/profile</code>文件添加以下内容</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/opt/jdk1.8.0_201</span><br><span class="line">export PATH=$PATH:$JAVA_HOME/bin</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br></pre></td></tr></table></figure>
+
+<p>检测是否安装成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 jdk1.8.0_201]# source /etc/profile</span><br><span class="line">[root@node-01 jdk1.8.0_201]# java -version</span><br><span class="line">java version &quot;1.8.0_201&quot;</span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_201-b09)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.201-b09, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-安装依赖包"><a href="#2-3-安装依赖包" class="headerlink" title="2.3 安装依赖包"></a>2.3 安装依赖包</h4><p>根据编译说明文件BUILDING.txt，安装相关依赖程序包</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 jdk1.8.0_201]# yum -y install gcc-c++ build-essential autoconf automake libtool cmake zlib1g-dev pkg-config libssl-devua svn openssl-devel ncurses-devel</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<p>gcc-c++ -&gt; liunx环境中的c/c++编译器</p>
+<p>build-essential -&gt; linux操作系统上面开发程序，光有了gcc是不行的；它还需要一个build-essential软件包；作用是提供编译程序必须软件包的列表信息</p>
+<p><img src="assets/Image201907241443.png"></p>
+<p>如果运行过程中，出现一下类似情况，说明需要更换yum源（如何更换，自行百度）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Loaded plugins: fastestmirror, langpacks</span><br><span class="line">Loading mirror speeds from cached hostfile</span><br><span class="line"> * base: mirrors.neusoft.edu.cn</span><br><span class="line"> * extras: mirrors.tuna.tsinghua.edu.cn</span><br><span class="line"> * updates: mirrors.neusoft.edu.cn</span><br><span class="line">base                                                                     | 3.6 kB  00:00:00     </span><br><span class="line">extras                                                                   | 3.4 kB  00:00:00     </span><br><span class="line">updates                                                                  | 3.4 kB  00:00:00     </span><br><span class="line">updates/7/x86_64/primary_db                                              | 6.5 MB  00:00:01     </span><br><span class="line">No package build-essential available.</span><br><span class="line">No package zlib1g-dev available.</span><br><span class="line">No package pkg-config available.</span><br><span class="line">No package libssl-devua available.</span><br><span class="line">Resolving Dependencies</span><br><span class="line"><span class="meta">--&gt;</span><span class="bash"> Running transaction check</span></span><br></pre></td></tr></table></figure>
+
+<p>或参考下边四种情况的解决方案</p>
+<p><img src="assets/Image201907281128.png"></p>
+<p>情况一：No package build-essential available.解决方案</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum groupinstall &#x27;Development Tools&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>情况二：No package zlib1g-dev available.解决方案</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install zlib</span><br><span class="line">yum install zlib-devel</span><br></pre></td></tr></table></figure>
+
+<p>情况三：No package pkg-config available.解决方案</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install pkgconfig</span><br></pre></td></tr></table></figure>
+
+<p>情况四：No package libssl-devua available.解决方案</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install openssl</span><br><span class="line">yum install openssl-devel</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="2-4-安装Maven"><a href="#2-4-安装Maven" class="headerlink" title="2.4 安装Maven"></a>2.4 安装Maven</h4><p>版本要求：Maven 3.0或以后版本均可</p>
+<blockquote>
+<p><font color='red'>坑</font>：由于apache-maven-3.5.0及以后的版本，在编译hadoop-2.7.0源码时，容易出错；本文档使用<font color='red'><strong>apache-maven-3.5.0</strong></font></p>
+</blockquote>
+<p><img src="assets/Image201907280230.png"></p>
+<p>先确认一下，是否已经安装了符合要求的maven；</p>
+<p>若已安装<font color='red'><strong>apache-maven-3.5.0</strong></font>，则<strong>略过“安装maven”步骤</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 opt]# mvn -v</span><br></pre></td></tr></table></figure>
+
+<p><img src="assets/Image201907281207.png"></p>
+<p>否则安装<font color='red'><strong>apache-maven-3.5.0</strong></font></p>
+<p>安装软件：apache-maven-3.5.0-bin.tar.gz</p>
+<p>解压maven压缩包到/opt目录下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 apps]# ls</span><br><span class="line">apache-maven-3.5.0-bin.tar.gz</span><br><span class="line">[root@node-01 apps]# tar -xzvf apache-maven-3.5.0-bin.tar.gz -C /opt/</span><br></pre></td></tr></table></figure>
+
+<p>配置mvn的环境变量</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 ~]# vim /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>添加如下内容</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export M2_HOME=/opt/apache-maven-3.5.0</span><br><span class="line">export PATH=$PATH:$M2_HOME/bin</span><br></pre></td></tr></table></figure>
+
+<p>测试是否安装完成</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 ~]# source .bash_profile</span><br><span class="line">[root@node-01 ~]# mvn -v</span><br></pre></td></tr></table></figure>
+
+<p><img src="assets/Image201907281207.png"></p>
+<p>默认使用中央仓库下载即可</p>
+<h4 id="2-5-安装Findbugs"><a href="#2-5-安装Findbugs" class="headerlink" title="2.5 安装Findbugs"></a>2.5 安装Findbugs</h4><p>版本要求：Findbugs 1.3.9</p>
+<p>安装软件：findbugs-3.0.1.tar.gz</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 apps]# ls</span><br><span class="line">findbugs-3.0.1.tar</span><br><span class="line">[root@node-01 apps]# tar -xvf findbugs-3.0.1.tar.gz -C /opt</span><br></pre></td></tr></table></figure>
+
+<p>配置Findbugs环境变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 apps]# vim &#x2F;etc&#x2F;profile</span><br></pre></td></tr></table></figure>
+
+<p>添加如下内容</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export FINDBUGS_HOME=/opt/findbugs-3.0.1</span><br><span class="line">export PATH=$PATH:$FINDBUGS_HOME/bin</span><br></pre></td></tr></table></figure>
+
+<p>测试是否安装完成</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 apps]# source /etc/profile</span><br><span class="line">[root@node-01 apps]# findbugs -version</span><br><span class="line">3.0.1</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-6-安装ProtocolBuffer"><a href="#2-6-安装ProtocolBuffer" class="headerlink" title="2.6 安装ProtocolBuffer"></a>2.6 安装ProtocolBuffer</h4><p>版本要求：ProtocolBuffer 2.5.0</p>
+<p>安装软件：protobuf-2.5.0.tar，不建议用其它版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 apps]# ls</span><br><span class="line">protobuf-2.5.0.tar</span><br><span class="line">[root@node-01 apps]# tar -xvf protobuf-2.5.0.tar</span><br><span class="line">[root@node-01 apps]# mv protobuf-2.5.0 ../</span><br><span class="line">[root@node-01 apps]# cd /opt/protobuf-2.5.0/</span><br><span class="line">[root@node-01 protobuf-2.5.0]# ./configure </span><br><span class="line">[root@node-01 protobuf-2.5.0]# make -j 4  # 干货，-j以4核同时编译；根据实际情况修改</span><br><span class="line">[root@node-01 protobuf-2.5.0]# make install</span><br></pre></td></tr></table></figure>
+
+<p>测试是否安装完成</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 protobuf-2.5.0]# protoc --version</span><br><span class="line">libprotoc 2.5.0</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-7-安装Snappy"><a href="#2-7-安装Snappy" class="headerlink" title="2.7 安装Snappy"></a>2.7 安装Snappy</h4><p>若想让hadoop支持snappy压缩，得先安装snappy；</p>
+<p><strong>若不需要，跳过此步骤</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 apps]# ls</span><br><span class="line">snappy-1.1.3.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>解压</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 opt]# tar -xzvf snappy-1.1.3.tar.gz -C /opt/</span><br></pre></td></tr></table></figure>
+
+<p>安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 opt]# cd /opt/snappy-1.1.3/</span><br><span class="line">[root@node-01 snappy-1.1.3]# ./configure</span><br><span class="line">[root@node-01 snappy-1.1.3]# make -j 4</span><br><span class="line">[root@node-01 snappy-1.1.3]# make install</span><br></pre></td></tr></table></figure>
+
+<p>查看snappy文件库</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 snappy-1.1.3]# ls -lh /usr/local/lib | grep snappy</span><br><span class="line">-rw-r--r--. 1 root root 510K 4月  12 14:14 libsnappy.a</span><br><span class="line">-rwxr-xr-x. 1 root root  955 4月  12 14:14 libsnappy.la</span><br><span class="line">lrwxrwxrwx. 1 root root   18 4月  12 14:14 libsnappy.so -&gt; libsnappy.so.1.3.0</span><br><span class="line">lrwxrwxrwx. 1 root root   18 4月  12 14:14 libsnappy.so.1 -&gt; libsnappy.so.1.3.0</span><br><span class="line">-rwxr-xr-x. 1 root root 253K 4月  12 14:14 libsnappy.so.1.3.0</span><br><span class="line">[root@node-01 snappy-1.1.3]# </span><br></pre></td></tr></table></figure>
+
+<p><img src="assets/Image201907241650.png"></p>
+<h4 id="2-8-安装Jansson"><a href="#2-8-安装Jansson" class="headerlink" title="2.8 安装Jansson"></a>2.8 安装Jansson</h4><p>首先确保已经安装wget，若没有，先安装（自行百度）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 snappy-1.1.3]# cd /opt/apps/</span><br><span class="line">[root@node-01 opt]# wget http://www.digip.org/jansson/releases/jansson-2.5.tar.gz</span><br><span class="line">[root@node-01 opt]# tar -zxvf jansson-2.5.tar.gz -C /opt</span><br><span class="line">[root@node-01 opt]# cd /opt/jansson-2.5</span><br><span class="line">[root@node-01 jansson-2.5]# ./configure  &amp;&amp; make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="2-9-编译hadoop"><a href="#2-9-编译hadoop" class="headerlink" title="2.9 编译hadoop"></a>2.9 编译hadoop</h4><p>防止编译时java.lang.OutOfMemoryError:Java heap space堆栈内存溢出问题，可以适当调整一下编译用的内存大小</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 opt]# export MAVEN_OPTS=&quot;-Xms256m -Xmx2048m&quot;</span><br></pre></td></tr></table></figure>
+
+<p>进入源码包下，执行命令进行编译</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@node-01 fuse-2.8.4]# cd</span><br><span class="line">[root@node-01 ~]# cd /opt/</span><br><span class="line">[root@node-01 opt]# cd hadoop-2.7.0-src/</span><br><span class="line">[root@node-01 hadoop-2.7.0-src]# mvn package -Pdist,native,docs -DskipTests -Dtar</span><br></pre></td></tr></table></figure>
+
+<p><img src="assets/Image201907241711.png"></p>
+<p>如果中途编译失败，并且不要文档、hadoop支持snappy、支持openssl的话，请使用这个命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost hadoop-2.7.7-src]# mvn clean package -Pdist,native -DskipTests -Dtar -Drequire.snappy -Dsnappy.lib=/usr/local/lib -Dbundle.snappy -Drequire.openssl</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<p>支持snappy（若不需要支持snappy，把这些选项去除即可）：Drequire.snappy -Dsnappy.lib=/usr/local/lib -Dbundle.snappy</p>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

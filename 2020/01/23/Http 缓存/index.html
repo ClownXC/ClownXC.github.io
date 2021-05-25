@@ -1,0 +1,246 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>http 缓存简介 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="浏览器第一次向一个 web 服务器发起 http 请求后，服务器会返回请求的资源，并且在响应头中添加一些有关缓存的字段如：Cache-Control、Expires、Last-Modified、ETag、Date等等。之后浏览器再向该服务器请求该资源就可以视情况使用强缓存和协商缓存。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="http 缓存简介">
+<meta property="og:url" content="http://joccer.gitee.io/2020/01/23/Http%20%E7%BC%93%E5%AD%98/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="浏览器第一次向一个 web 服务器发起 http 请求后，服务器会返回请求的资源，并且在响应头中添加一些有关缓存的字段如：Cache-Control、Expires、Last-Modified、ETag、Date等等。之后浏览器再向该服务器请求该资源就可以视情况使用强缓存和协商缓存。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2020-01-22T16:01:29.000Z">
+<meta property="article:modified_time" content="2021-05-17T16:15:09.734Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2020/01/23/Http%20%E7%BC%93%E5%AD%98/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-05-18 00:15:09'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BC%BA%E7%BC%93%E5%AD%98"><span class="toc-number">1.</span> <span class="toc-text">1. 强缓存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%8D%8F%E5%95%86%E7%BC%93%E5%AD%98"><span class="toc-number">2.</span> <span class="toc-text">2. 协商缓存</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ETag-%E5%92%8C-If-None-Match"><span class="toc-number">2.0.1.</span> <span class="toc-text">ETag 和 If-None-Match</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Last-Modified-%E5%92%8C-If-Modified-Since"><span class="toc-number">2.0.2.</span> <span class="toc-text">Last-Modified 和 If-Modified-Since</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ETag-%E8%BE%83%E4%B9%8B-Last-Modified-%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">2.0.3.</span> <span class="toc-text">ETag 较之 Last-Modified 的优势</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%BC%93%E5%AD%98%E7%9B%B8%E5%85%B3-Header"><span class="toc-number">3.</span> <span class="toc-text">3. 缓存相关 Header</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%93%E5%AD%98%E8%BF%87%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">4. 浏览器缓存过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%A6%82%E4%BD%95%E4%B8%8D%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">5. 如何不缓存？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Cache-Control"><span class="toc-number">5.1.</span> <span class="toc-text">5.1. Cache-Control</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Expires"><span class="toc-number">5.2.</span> <span class="toc-text">5.2. Expires</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E8%AE%BE%E7%BD%AE%E4%B8%8D%E7%BC%93%E5%AD%98"><span class="toc-number">5.3.</span> <span class="toc-text">5.3. 前端开发设置不缓存</span></a></li></ol></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">http 缓存简介</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-01-22T16:01:29.000Z" title="发表于 2020-01-23 00:01:29">2020-01-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-05-17T16:15:09.734Z" title="更新于 2021-05-18 00:15:09">2021-05-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>浏览器第一次向一个 web 服务器发起 <code>http</code> 请求后，服务器会返回请求的资源，并且在响应头中添加一些有关缓存的字段如：<code>Cache-Control</code>、<code>Expires</code>、<code>Last-Modified</code>、<code>ETag</code>、<code>Date</code>等等。之后浏览器再向该服务器请求该资源就可以视情况使用<strong>强缓存</strong>和<strong>协商缓存</strong>。</p>
+<a id="more"></a>
+
+<ol>
+<li>强缓存：浏览器直接从本地缓存中获取数据，不与服务器进行交互。</li>
+<li>协商缓存：浏览器发送请求到服务器，服务器判定是否可使用本地缓存。</li>
+</ol>
+<p>联系与区别：两种缓存方式最终使用的都是本地缓存；前者无需与服务器交互，后者需要。</p>
+<h2 id="1-强缓存"><a href="#1-强缓存" class="headerlink" title="1. 强缓存"></a>1. 强缓存</h2><p>用户发起了一个 <code>http</code> 请求后，浏览器发现先本地已有所请求资源的缓存，便开始检查缓存是否过期。有两个 http 头部字段控制缓存的有效期：<code>Expires</code> 和 <code>Cache-Control</code>，浏览器是根据以下两步来判定缓存是否过期的</p>
+<ul>
+<li>**Expires: ** response header 里的过期时间，浏览器再次加载资源时，如果在这个过期时间内，则命中强缓存。</li>
+<li><strong>Cache-Control:</strong> 当值设为 max-age=300 时，则代表在这个请求正确返回时间的 5 分钟内再次加载资源，就会命中强缓存。</li>
+</ul>
+<blockquote>
+<p>区别：Expires 是 http1.0 的产物，Cache-Control 是 http1.1 的产物两者同时存在的话，Cache-Control优先级高于 Expires。Expires 是过时的产物，现阶段它的存在只是一种兼容性的写法</p>
+</blockquote>
+<h2 id="2-协商缓存"><a href="#2-协商缓存" class="headerlink" title="2. 协商缓存"></a>2. 协商缓存</h2><p>当浏览器发现缓存过期后，缓存并不一定不能使用了，因为服务器端的资源可能仍然没有改变，所以需要与服务器协商，让服务器判断本地缓存是否还能使用。此时浏览器会判断缓存中是否有 <code>ETag</code> 或 <code>Last-Modified</code> 字段，如果没有，则发起一个 <code>http</code> 请求，服务器根据请求返回资源；</p>
+<p>如果有这两个字段，则在请求头中添加 <code>If-None-Match</code> 字段（有<code>ETag</code>字段的话添加）、<code>If-Modified-Since</code>字段（有<code>Last-Modified</code>字段的话添加）。</p>
+<p><strong>注意：</strong>如果同时发送<code>If-None-Match</code> 、<code>If-Modified-Since</code>字段，服务器只要比较<code>If-None-Match</code>和<code>ETag</code>的内容是否一致即可；如果内容一致，服务器认为缓存仍然可用，则返回状态码<code>304</code>，浏览器直接读取本地缓存，这就完成了协商缓存的过程，也就是图中的蓝线；如果内容不一致，则视情况返回其他状态码，并返回所请求资源。下面详细解释下这个过程：</p>
+<h4 id="ETag-和-If-None-Match"><a href="#ETag-和-If-None-Match" class="headerlink" title="ETag 和 If-None-Match"></a><code>ETag</code> 和 <code>If-None-Match</code></h4><p>二者的值都是服务器为每份资源分配的唯一标识字符串。</p>
+<ol>
+<li>浏览器请求资源，服务器会在响应报文头中加入 <code>ETag</code> 字段。资源更新时，服务器端的 <code>ETag</code> 值也随之更新</li>
+<li>浏览器再次请求资源时，会在请求报文头中添加 <code>If-None-Match</code> 字段，它的值就是上次响应报文中的 <code>ETag</code>的值</li>
+<li>服务器会比对 <code>ETag</code> 与 <code>If-None-Match</code> 的值是否一致，如果不一致，服务器则接受请求，返回更新后的资源；如果一致，表明资源未更新，则返回状态码为 <code>304</code> 的响应，可继续使用本地缓存，要注意的是，此时响应头会加上 <code>ETag</code> 字段，即使它没有变化。</li>
+</ol>
+<h4 id="Last-Modified-和-If-Modified-Since"><a href="#Last-Modified-和-If-Modified-Since" class="headerlink" title="Last-Modified 和 If-Modified-Since"></a><code>Last-Modified</code> 和 <code>If-Modified-Since</code></h4><p>二者的值都是GMT格式的时间字符串。</p>
+<ol>
+<li>浏览器第一次向服务器请求资源后，服务器会在响应头中加上 <code>Last-Modified</code> 字段，表明该资源最后一次的修改时间</li>
+<li>浏览器再次请求该资源时，会在请求报文头中添加 <code>If-Modified-Since</code> 字段，它的值就是上次服务器响应报文中的 <code>Last-Modified</code> 的值</li>
+<li>服务器会比对 <code>Last-Modified</code> 与 <code>If-Modified-Since</code> 的值是否一致，如果不一致，服务器则接受请求，返回更新后的资源；如果一致，表明资源未更新，则返回状态码为 <code>304</code> 的响应，可继续使用本地缓存，与 <code>ETag</code> 不同的是：此时响应头中不会再添加 <code>Last-Modified</code> 字段。</li>
+</ol>
+<h4 id="ETag-较之-Last-Modified-的优势"><a href="#ETag-较之-Last-Modified-的优势" class="headerlink" title="ETag 较之 Last-Modified 的优势"></a><code>ETag</code> 较之 <code>Last-Modified</code> 的优势</h4><ol>
+<li>一些文件也许会周期性的更改，但是内容并不改变(仅仅改变的修改时间)，这个时候我们并不希望客户端认为这个文件被修改了，而重新<code>GET</code>；</li>
+<li>某些文件修改非常频繁，比如在秒以下的时间内进行修改，(比方说1s内修改了N次)，<code>If-Modified-Since</code>能检查到的粒度是s级的，这种修改无法判断；</li>
+<li>某些服务器不能精确的得到文件的最后修改时间。</li>
+</ol>
+<p>这时，利用 <code>ETag</code> 能够更加准确的控制缓存，因为 <code>ETag</code> 是服务器自动生成的资源在服务器端的唯一标识符，资源每次变动，都会生成新的 <code>ETag</code> 值。<code>Last-Modified </code>与 <code>ETag</code>是可以一起使用的，但服务器会优先验证<code>ETag</code>。</p>
+<p><strong>Web 缓存器</strong>又称 <strong>代理服务器</strong>（proxy server），它能够将最近的一些请求和响应暂存在本地磁盘中。当新请求到达时，如果代理服务器中没有这个请求，那么就会从互联网中访问该资源，将其返回给代理服务器，代理服务器会保存一份资源的副本，之后将资源返回给客户端。若代理服务器发现这个请求与暂时存放的请求相同，就返回暂存响应，而不需按URL的地址再次去互联网访问该资源。</p>
+<ol>
+<li><strong>大大减少对客户请求的响应的时间</strong>。</li>
+<li><strong>可以避免多次从源服务器转发资源，大大减少了一个机构接入链路到因特网的通信量，从而降低了费用</strong>。</li>
+</ol>
+<h2 id="3-缓存相关-Header"><a href="#3-缓存相关-Header" class="headerlink" title="3. 缓存相关 Header"></a>3. 缓存相关 Header</h2><p><img src="/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/2.png" alt="截屏2021-05-14 下午7.54.13"></p>
+<h2 id="4-浏览器缓存过程"><a href="#4-浏览器缓存过程" class="headerlink" title="4. 浏览器缓存过程"></a>4. <strong>浏览器缓存过程</strong></h2><ol>
+<li>浏览器<strong>第一次</strong>加载资源，服务器返回200，浏览器将资源文件从服务器上请求下载下来，并把 <strong>response header</strong> 及该请求的<strong>返回时间</strong>(要与 Cache-Control 和 Expires 对比)一并缓存；</li>
+<li>下一次加载资源时，先比较当前时间和上一次返回 200 时的<strong>时间差</strong>，如果没有超过 Cache-Control 设置的 max-age，则没有过期，命中强缓存，不发请求直接从本地缓存读取该文件(如果浏览器不支持 HTTP1.1，则用 Expires 判断是否过期)；</li>
+<li><strong>如果时间过期</strong>，则向服务器发送 header 带有 <strong>If-None-Match</strong> 和 <strong>If-Modified-Since</strong> 的请求；</li>
+<li>服务器收到请求后，<strong>优先根据 Etag</strong> 的值判断被请求的文件有没有做修改，Etag 值一致则没有修改，命中协商缓存，返回304；如果不一致则有改动，直接返回新的资源文件带上新的Etag值并返回 200；</li>
+<li>如果服务器收到的请求没有 Etag 值，则将 <strong>If-Modified-Since</strong> 和被请求文件的最后修改时间做比对，一致则命中协商缓存，返回304；不一致则返回新的<strong>last-modified和文件</strong>并返回 200；</li>
+</ol>
+<h2 id="5-如何不缓存？"><a href="#5-如何不缓存？" class="headerlink" title="5. 如何不缓存？"></a>5. <strong>如何不缓存</strong>？</h2><h3 id="5-1-Cache-Control"><a href="#5-1-Cache-Control" class="headerlink" title="5.1. Cache-Control"></a>5.1. <strong>Cache-Control</strong></h3><p>no-store: 不使用任何缓存</p>
+<p>no-cache: 仍然对资源使用缓存，但每一次在使用缓存之前必须向服务器对缓存资源进行验证。</p>
+<h3 id="5-2-Expires"><a href="#5-2-Expires" class="headerlink" title="5.2. Expires"></a>5.2. <strong>Expires</strong></h3><p><strong>设为当前时间之前</strong></p>
+<h3 id="5-3-前端开发设置不缓存"><a href="#5-3-前端开发设置不缓存" class="headerlink" title="5.3. 前端开发设置不缓存"></a>5.3. <strong>前端开发设置不缓存</strong></h3><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;pragma&quot;</span> <span class="attr">content</span>=<span class="string">&quot;no-cache&quot;</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;Cache-Control&quot;</span> <span class="attr">content</span>=<span class="string">&quot;no-cache, must-revalidate&quot;</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;expires&quot;</span> <span class="attr">content</span>=<span class="string">&quot;Wed, 26 Feb 1997 00:00:00 GMT&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure></div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2020/01/23/Http%20%E7%BC%93%E5%AD%98/">http://joccer.gitee.io/2020/01/23/Http%20%E7%BC%93%E5%AD%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2020/02/01/Hello%20UDP/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Hello UDP</div></div></a></div><div class="next-post pull-right"><a href="/2020/01/13/Kafka%E5%89%AF%E6%9C%AC%E7%8A%B6%E6%80%81%E6%9C%BA/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">消息系统-Kafka：ReplicaStateMachine 副本状态机</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

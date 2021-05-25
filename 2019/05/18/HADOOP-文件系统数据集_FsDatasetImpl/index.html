@@ -1,0 +1,253 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>文件系统数据集_FsDatasetImpl实现 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="BlockPoolSlice 负责管理单个存储目录下单个块池的所有数据块；FsVolumeImpl 则负责管理一个完整的存储目录下所有的数据块，也就包括了这个存储目录下多个 BlockPoolSlice 对象的引用。Datanode 可以定义多个存储目录，也就是定义多个 FsVolumeImpl 对象，在 HDFS 中使用 FsVolumeList 对象统一管理 Datanode 上定义的多个 F">
+<meta property="og:type" content="article">
+<meta property="og:title" content="文件系统数据集_FsDatasetImpl实现">
+<meta property="og:url" content="http://joccer.gitee.io/2019/05/18/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsDatasetImpl/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="BlockPoolSlice 负责管理单个存储目录下单个块池的所有数据块；FsVolumeImpl 则负责管理一个完整的存储目录下所有的数据块，也就包括了这个存储目录下多个 BlockPoolSlice 对象的引用。Datanode 可以定义多个存储目录，也就是定义多个 FsVolumeImpl 对象，在 HDFS 中使用 FsVolumeList 对象统一管理 Datanode 上定义的多个 F">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-05-17T16:13:10.000Z">
+<meta property="article:modified_time" content="2021-05-25T01:12:03.149Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2019/05/18/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsDatasetImpl/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-05-25 09:12:03'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-ReplicaMap"><span class="toc-number">1.</span> <span class="toc-text">1. ReplicaMap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-ReplicaInfo"><span class="toc-number">2.</span> <span class="toc-text">2. ReplicaInfo</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-unlinkBlock"><span class="toc-number">2.1.</span> <span class="toc-text">2.1. unlinkBlock()</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-FsDatasetSpi"><span class="toc-number">3.</span> <span class="toc-text">3. FsDatasetSpi</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-FsDatasetImpl"><span class="toc-number">4.</span> <span class="toc-text">4. FsDatasetImpl</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%AD%97%E6%AE%B5"><span class="toc-number">4.1.</span> <span class="toc-text">4.1. 字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%96%B9%E6%B3%95"><span class="toc-number">4.2.</span> <span class="toc-text">4.2. 方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-3-1-%E6%93%8D%E4%BD%9C%E5%BA%95%E5%B1%82-FsVolumeList-%E4%BB%A5%E5%8F%8A-DataStorage"><span class="toc-number">4.2.1.</span> <span class="toc-text">4.3.1. 操作底层 FsVolumeList 以及 DataStorage</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-3-2-%E6%95%B0%E6%8D%AE%E5%9D%97%E5%89%AF%E6%9C%AC%E4%BF%A1%E6%81%AF%E7%9B%B8%E5%85%B3%E6%96%B9%E6%B3%95"><span class="toc-number">4.2.2.</span> <span class="toc-text">4.3.2. 数据块副本信息相关方法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">5. 总结</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">文件系统数据集_FsDatasetImpl实现</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-05-17T16:13:10.000Z" title="发表于 2019-05-18 00:13:10">2019-05-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-05-25T01:12:03.149Z" title="更新于 2021-05-25 09:12:03">2021-05-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Hadoop/">Hadoop</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>BlockPoolSlice 负责管理单个存储目录下单个块池的所有数据块；FsVolumeImpl 则负责管理一个完整的存储目录下所有的数据块，也就包括了这个存储目录下多个 BlockPoolSlice 对象的引用。Datanode 可以定义多个存储目录，也就是定义多个 FsVolumeImpl 对象，在 HDFS 中使用 FsVolumeList 对象统一管理 Datanode 上定义的多个 FsVolumelmpl 对象。FsDatasetImpl 负责管理 Datanode 上所有数据块功能的类</p>
+<a id="more"></a>
+
+<p>FsDatasetSpi 是 FsDatasetImpl的根接口，定义了 Datanode 管理数据块的接口方法。FsDatasetImpl会通过持有一个 FsVolumeList 对象对 Datanode 上定义的所有存储目录下的数据块进行管理与操作，FsDatasetlmpl 还会持有一个DataStorage 对象对 Datanode 的存储空间进行操作。同时 FsDatasetImpl 会通过持有一个 ReplicaMap 对象维护 Datanode 上所有副本的信息与状态。</p>
+<h2 id="1-ReplicaMap"><a href="#1-ReplicaMap" class="headerlink" title="1. ReplicaMap"></a>1. ReplicaMap</h2><p>ReplicaMap 保存了 Datanode 上所有数据块副本的信息。ReplicaMap 维护一个Map,保存 Datanode 上所有块池与这个块池保存的数据块副本信息的映射关系。数据块副本的信息是通过 ReplicaInfo 类描述的。</p>
+<h2 id="2-ReplicaInfo"><a href="#2-ReplicaInfo" class="headerlink" title="2. ReplicaInfo"></a>2. ReplicaInfo</h2><p>ReplicaInfo 是一个抽象类，用来描述 Datanode 上保存的数据块副本信息。ReplicaInfo 类对外提供了getBlockFile()、getMetaFile()、getVolume()、getStorageUuid() 等方法，分别用于获取副本的数据块文件、校验文件、副本所在存储目录的FsVolumeImpl对象以及副本所在存储目录的 storageUuid 信息。</p>
+<p>ReplicaInfo 有如下几个子类分别用来描述处于不同状态的数据块副本。</p>
+<img src="/images/hadoop/0043.png" alt="截屏2021-05-21 下午7.41.42" style="zoom:30%;" />
+
+<ol>
+<li>ReplicaBeingWritten 对应 RBW 状态的副本，副本正通过数据流管道写入 Datanode.</li>
+<li>ReplicaUnderRecovery 对应 RUR 状态的副本，副本正在进行恢复操作。</li>
+<li>ReplicaWaitingToBeRecovered 对应 RWR 状态的副本，副本等待恢复操作。</li>
+<li>FinalizedReplica 对应 FINALIZED 状态的副本，副本已!经完成写操作，并且已经提交</li>
+</ol>
+<h3 id="2-1-unlinkBlock"><a href="#2-1-unlinkBlock" class="headerlink" title="2.1. unlinkBlock()"></a>2.1. unlinkBlock()</h3><p>ReplicaInfo.unlinkBlock() 用于移除数据块上的硬链接。通过将数据块文件移动到一个临时的位置，然后再移动回来即可移除硬链接。</p>
+<blockquote>
+<p>为什么要移除硬链接呢？</p>
+<p>Datanode 在升级过程中或者回滚到上一版本前，previous 目录和 current 目录使用硬链接保留了对相同数据块的引用。如果这时客户端对任意数据块进行追加写操作，将会同时影响两个引用，也就影响了上一版本的数据。这时需要去除current目录对该数据块的硬链接，保证后续对该数据块的修改不会影响previous 目录。</p>
+</blockquote>
+<p>unlinkBlock() 方法会调用 unlinkFile() 方法去除数据块副本文件以及校验和文件的硬链接，unlinkFile() 方法会将需要更改的文件先复制一份，创建一个临时文件并命名为 <code>$&#123;fileName&#125;.unlinked</code>，临时文件将不会存在任何硬链接，且内容与源文件完全相同。当临时文件创建成功后，再把临时文件改名为源文件。这时 current 和 previous 中将存在两个不同的文件，但内容却是完全相同的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">unlinkBlock</span><span class="params">(<span class="keyword">int</span> numLinks)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (isUnlinked()) &#123; <span class="comment">// 如果已经移除硬链接则直接返回</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>; </span><br><span class="line">  &#125;</span><br><span class="line">  File file = getBlockFile();</span><br><span class="line">  <span class="keyword">if</span> (file == <span class="keyword">null</span> || getVolume() == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;detachBlock:Block not found. &quot;</span> + <span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  File meta = getMetaFile();</span><br><span class="line">  <span class="comment">// 移除数据块文件硬链接</span></span><br><span class="line">  <span class="keyword">if</span> (HardLink.getLinkCount(file) &gt; numLinks) &#123;</span><br><span class="line">    DataNode.LOG.info(<span class="string">&quot;CopyOnWrite for block &quot;</span> + <span class="keyword">this</span>);</span><br><span class="line">    unlinkFile(file, <span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 移除校验文件硬链接</span></span><br><span class="line">  <span class="keyword">if</span> (HardLink.getLinkCount(meta) &gt; numLinks) &#123;</span><br><span class="line">    unlinkFile(meta, <span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  setUnlinked();</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">unlinkFile</span><span class="params">(File file, Block b)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="comment">// 构造临时文件，临时文件在同一目录下，在数据块文件名后加后缀“。unlinked”</span></span><br><span class="line">  File tmpFile-DatanodeUtil.createTmpFile(b, DatanodeUtil.getUnlinkTmpFile(file));</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">  	FileInputStream in = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">  	<span class="keyword">try</span>&#123;</span><br><span class="line">  		FileOutputStream out= <span class="keyword">new</span> FileOutputStream(tmpFile);</span><br><span class="line">  			<span class="keyword">try</span>&#123;</span><br><span class="line">  				<span class="comment">// 将源文件拷贝至临时文件中</span></span><br><span class="line">  				IOUtils.copyBytes(in, out, <span class="number">16</span>*<span class="number">1024</span>);</span><br><span class="line">  			｝ <span class="keyword">finally</span> &#123;</span><br><span class="line">  				out.close();</span><br><span class="line">  		｝ <span class="keyword">finally</span>&#123;</span><br><span class="line">  				in.close();</span><br><span class="line">  				<span class="keyword">if</span> (file.length() != tmpFile.length())&#123;</span><br><span class="line">  				<span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;Copy of file &quot;</span> + file+<span class="string">&quot;size&quot;</span>+file.length()+＂into file<span class="string">&quot; + tmpFile +</span></span><br><span class="line"><span class="string">  				＂ resulted in a size of &quot;</span>+ tmpFile.length());</span><br><span class="line">  				<span class="comment">// 用临时文件替换源文件，然后删除临时文件</span></span><br><span class="line">  				FileUtil.replaceFile(tmpFile, file);</span><br><span class="line">  	｝ <span class="keyword">catch</span> (IOException e)</span><br><span class="line">  		<span class="keyword">boolean</span> done =tmpFile.delete();</span><br><span class="line">  		<span class="keyword">if</span>(!done)&#123;</span><br><span class="line">  				DataNode.LOG.info(<span class="string">&quot;detachFile failed to delete temporary file&quot;</span>+tmpFile);</span><br><span class="line">          <span class="keyword">throw</span> e;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-FsDatasetSpi"><a href="#3-FsDatasetSpi" class="headerlink" title="3. FsDatasetSpi"></a>3. FsDatasetSpi</h2><p>FsDatasetSpi 是 FsDatasetImpl 的根接口，继承自 FSDatasetMBean 接口，定义了 Datanode 上管理与操作数据块副</p>
+<ol>
+<li>操作底层 FsVolumeList 以及 DataStorage 相关方法：getVolumes()、getVolume()、getStorage()、getVolumeInfoMap()等方法。</li>
+<li>操作数据块相关方法: getFinalizedBlocks()、getStoredBlock()、getBlockInputStream()、append()、finalizeBlock()等方法。</li>
+<li>操作缓存相关方法: cache()、uncache()、isCached() 等方法。</li>
+<li>操作块池方法：addBlockPool()、shutdownBlockPool()、deleteBlockPool()等方法。</li>
+<li>数据块汇报相关方法：getStorageReports()、getBlockReports()、getCacheReport().</li>
+<li>回收站相关方法：enableTrash()、restoreTrash()、trashEnabled().</li>
+</ol>
+<p><img src="/images/hadoop/0051.png" alt="截屏2021-05-21 下午8.09.42"></p>
+<h2 id="4-FsDatasetImpl"><a href="#4-FsDatasetImpl" class="headerlink" title="4. FsDatasetImpl"></a>4. FsDatasetImpl</h2><h3 id="4-1-字段"><a href="#4-1-字段" class="headerlink" title="4.1. 字段"></a>4.1. 字段</h3><p>FsDatasetImpl 类字段</p>
+<p><img src="/images/hadoop/0056.png" alt="截屏2021-05-21 下午8.22.05"></p>
+<ol>
+<li>datanode: 当前数据节点的 Datanode 对象的引用。</li>
+<li>dataStorage: DataStorage 对象的引用，在FsDatasetImpl 中调用这个对象开启和关闭存储空间回收站功能。</li>
+<li>volumes: FsVolumeList 对象的引用，FsDatasetImpl 使用 FsVolumeList 对象提供的功能管理 Datanode 上的所有数据块，并且通过对 volumes 字段的修改添加和删除新的存储目录。</li>
+<li>storageMap: 在 FsDatasetImpl 中，对于每一个存储目录都会构造一个 DataStorage 对象，storageMap 字段就是用来保存这些存储 <code>storageUuid-&gt;DataStorage</code> 的映射。FsDatasetImpl 可以通过 storageUuid 获取对应的 DataStorage 对象。</li>
+<li>volumeMap: ReplicaMap 类型，用于记录 Datanode 上所有数据块副本的信息。</li>
+<li>cacheManager: FsDatasetCache 类型，用于将数据块缓存到内存中的工具类。</li>
+<li>asyncDiskService: FsDatasetAsyncDiskService 类型，用于在Datanode 磁盘存储上进行一些异步的 IO 操作。例如在进行删除数据块副本操作时，会调用 FsDatasetAsyncDiskService.deleteAsync() 异步地将数据块文件从磁盘上删除。</li>
+</ol>
+<h3 id="4-2-方法"><a href="#4-2-方法" class="headerlink" title="4.2. 方法"></a>4.2. 方法</h3><img src="/images/hadoop/0057.png" alt="截屏2021-05-21 下午8.24.08" style="zoom:50%;" />
+
+<h4 id="4-3-1-操作底层-FsVolumeList-以及-DataStorage"><a href="#4-3-1-操作底层-FsVolumeList-以及-DataStorage" class="headerlink" title="4.3.1. 操作底层 FsVolumeList 以及 DataStorage"></a>4.3.1. 操作底层 FsVolumeList 以及 DataStorage</h4><ul>
+<li>getVolumes(): 获取 FsVolumeImpl 对象的列表</li>
+<li>getVolume(): 获取指定存储目录对应的 FsVolumelmpl 对象</li>
+<li>getStorage(): 获取指定存储目录对应的 DataStorage 对象</li>
+<li>getVolumeInfoMap(): 获取存储目录的卷信息,返回 VolumeInfo 对象的集合。</li>
+</ul>
+<p>VolumeInfo 是 FsDatasetImpl的内部类，用于描述一个 FsVolumelmpl 对应存储目录的存储信息。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">VolumeInfo</span> </span>&#123;</span><br><span class="line">	<span class="keyword">final</span> String directory;</span><br><span class="line">	<span class="comment">// 存储目录的路径</span></span><br><span class="line">	<span class="keyword">final</span> <span class="keyword">long</span> usedSpace;</span><br><span class="line">	<span class="comment">// 存储目录中已经使用的空间</span></span><br><span class="line">  <span class="keyword">final</span> <span class="keyword">long</span> freeSpace;</span><br><span class="line">  <span class="comment">// 存储目录中可用的空间</span></span><br><span class="line">  <span class="keyword">final</span> <span class="keyword">long</span> reservedSpace;</span><br><span class="line">  <span class="comment">// 存储目录中预留的空间</span></span><br><span class="line">  VolumeInfo (FsVolumeImpl v, <span class="keyword">long</span> usedSpace, <span class="keyword">long</span> freeSpace) &#123;</span><br><span class="line">    <span class="keyword">this</span>.directory = v.toString();</span><br><span class="line">    <span class="keyword">this</span>.usedSpace = usedSpace;</span><br><span class="line">    <span class="keyword">this</span>.freeSpace = freeSpace;</span><br><span class="line">    <span class="keyword">this</span>. reservedSpace = v. getReserved();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-3-2-数据块副本信息相关方法"><a href="#4-3-2-数据块副本信息相关方法" class="headerlink" title="4.3.2. 数据块副本信息相关方法"></a>4.3.2. 数据块副本信息相关方法</h4><p>FsDatasetImpl 使用 ReplicaMap 记录 Datanode 存储的所有副本信息，FsDatasetImpl 定义了若干获取数据块副本信息的方法</p>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5. 总结"></a>5. 总结</h2><img src="/images/hadoop/0066.png" alt="截屏2021-05-21 下午9.37.13" style="zoom:50%;" />
+
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2019/05/18/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsDatasetImpl/">http://joccer.gitee.io/2019/05/18/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsDatasetImpl/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/05/22/HADOOP-BlockPoolManager/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Datanode 块池管理_BlockPoolManager</div></div></a></div><div class="next-post pull-right"><a href="/2019/05/13/HADOOP-FSImage/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">FSImage</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

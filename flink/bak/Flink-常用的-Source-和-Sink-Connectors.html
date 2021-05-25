@@ -1,0 +1,288 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分类: Flink | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Flink Job 的大致结构就是 Source ——&gt; Transformation ——&gt; Sink。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Flink 常用的 Source 和 Sink Connectors">
+<meta property="og:url" content="http://joccer.gitee.io/flink/bak/Flink-%E5%B8%B8%E7%94%A8%E7%9A%84-Source-%E5%92%8C-Sink-Connectors.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Flink Job 的大致结构就是 Source ——&gt; Transformation ——&gt; Sink。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-12-18T12:27:18.000Z">
+<meta property="article:modified_time" content="2021-05-23T13:30:13.356Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/flink/bak/Flink-%E5%B8%B8%E7%94%A8%E7%9A%84-Source-%E5%92%8C-Sink-Connectors"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-05-23 21:30:13'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">Flink 常用的 Source 和 Sink Connectors</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><p>Flink Job 的大致结构就是 <code>Source ——&gt; Transformation ——&gt; Sink</code>。</p>
+<a id="more"></a>
+
+<h2 id="1-Data-Source"><a href="#1-Data-Source" class="headerlink" title="1. Data Source"></a>1. Data Source</h2><p>Flink 做为一款流式计算框架，它可用来做批处理，即处理静态的数据集、历史的数据集；也可以用来做流处理，即处理实时的数据流（做计算操作），然后将处理后的数据实时下发，只要数据源源不断过来，Flink 就能够一直计算下去。</p>
+<p>Flink 中使用 <code>StreamExecutionEnvironment.addSource(sourceFunction)</code> 添加数据来源。</p>
+<h3 id="1-1-常用的-Data-Source"><a href="#1-1-常用的-Data-Source" class="headerlink" title="1.1. 常用的 Data Source"></a>1.1. 常用的 Data Source</h3><p>StreamExecutionEnvironment 中可以使用以下这些已实现的 stream source。总的可以分为下面几大类:</p>
+<h4 id="1-1-1-基于集合"><a href="#1-1-1-基于集合" class="headerlink" title="1.1.1. 基于集合"></a>1.1.1. 基于集合</h4><ol>
+<li><p><code>fromCollection(Collection)</code> </p>
+<blockquote>
+<p>从 Java 的 Java.util.Collection 创建数据流。集合中的所有元素类型必须相同。</p>
+</blockquote>
+</li>
+<li><p>fromCollection(Iterator, Class)</p>
+<blockquote>
+<p>从一个迭代器中创建数据流。Class 指定了该迭代器返回元素的类型。</p>
+</blockquote>
+</li>
+<li><p>fromElements(T …)</p>
+<blockquote>
+<p>从给定的对象序列中创建数据流。所有对象类型必须相同。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">StreamExecutionEnvironment</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line"><span class="type">DataStream</span>&lt;<span class="type">Event</span>&gt; input = env.fromElements(</span><br><span class="line">    <span class="keyword">new</span> <span class="type">Event</span>(<span class="number">1</span>, <span class="string">&quot;barfoo&quot;</span>, <span class="number">1.0</span>),</span><br><span class="line">    <span class="keyword">new</span> <span class="type">Event</span>(<span class="number">2</span>, <span class="string">&quot;start&quot;</span>, <span class="number">2.0</span>),</span><br><span class="line">    <span class="keyword">new</span> <span class="type">Event</span>(<span class="number">3</span>, <span class="string">&quot;foobar&quot;</span>, <span class="number">3.0</span>),</span><br><span class="line">    ...</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>fromParallelCollection(SplittableIterator, Class)</p>
+<blockquote>
+<p>从一个迭代器中创建并行数据流。Class 指定了该迭代器返回元素的类型。</p>
+</blockquote>
+</li>
+<li><p>generateSequence(from, to)</p>
+<blockquote>
+<p>创建一个生成指定区间范围内的数字序列的并行数据流。</p>
+</blockquote>
+</li>
+</ol>
+<h4 id="1-1-2-基于文件"><a href="#1-1-2-基于文件" class="headerlink" title="1.1.2. 基于文件"></a>1.1.2. 基于文件</h4><ol>
+<li><p>readTextFile(path)</p>
+<blockquote>
+<p>读取文本文件，即符合 TextInputFormat 规范的文件，并将其作为字符串返回。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">StreamExecutionEnvironment</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment();</span><br><span class="line"><span class="type">DataStream</span>&lt;<span class="type">String</span>&gt; text = env.readTextFile(<span class="string">&quot;file:///path/to/file&quot;</span>);</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>readFile(fileInputFormat, path)</p>
+<blockquote>
+<p>根据指定的文件输入格式读取文件（一次）。</p>
+</blockquote>
+</li>
+<li><p>readFile(fileInputFormat, path, watchType, interval, pathFilter, typeInfo)</p>
+<blockquote>
+<p>这是上面两个方法内部调用的方法。它根据给定的 fileInputFormat 和读取路径读取文件。根据提供的 watchType，这个 source 可以定期(每隔 interval 毫秒)监测给定路径的新数据，或者处理一次路径对应文件的数据并退出（FileProcessingMode.PROCESS*ONCE）。可以通过 pathFilter 进一步排除掉需要处理的文件。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">StreamExecutionEnvironment</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment();</span><br><span class="line"><span class="type">DataStream</span>&lt;<span class="type">MyEvent</span>&gt; stream = env.readFile(</span><br><span class="line">        myFormat, myFilePath, <span class="type">FileProcessingMode</span>.<span class="type">PROCESS_CONTINUOUSLY</span>, <span class="number">100</span>,</span><br><span class="line">        <span class="type">FilePathFilter</span>.createDefaultFilter(), typeInfo);</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>在具体实现上，Flink 把文件读取过程分为两个子任务，即目录监控和数据读取。每个子任务都由单独的实体实现。目录监控由单个并行度为 1 的任务执行，而数据读取由并行运行的多个任务执行。后者的并行性等于作业的并行性。单个目录监控任务的作用是扫描目录, 根据 watchType 定期扫描或仅扫描一次，查找要处理的文件并把文件分割成切分片splits，然后将这些切分片分配给下游 reader。reader 负责读取数据。每个切分片只能由一个 reader 读取，但一个 reader 可以逐个读取多个切分片。</p>
+<ul>
+<li><p>watchType 设置为 FileProcessingMode.PROCESS_CONTINUOUSLY，则当文件被修改时，其内容将被重新处理。这会打破 <code>exactly-once</code> 语义，因为在文件末尾附加数据将导致其所有内容被重新处理。</p>
+</li>
+<li><p>watchType 设置为 FileProcessingMode.PROCESS_ONCE，则 source 仅扫描路径一次然后退出，而不等待 reader 完成文件内容的读取。reader 会继续阅读，直到读取所有的文件内容。关闭 source 后就不会再有检查点。这可能导致节点故障后的恢复速度较慢，因为该作业将从最后一个检查点恢复读取。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="1-1-3-基于-Socket"><a href="#1-1-3-基于-Socket" class="headerlink" title="1.1.3. 基于 Socket"></a>1.1.3. 基于 Socket</h4><p>socketTextStream(String hostname, int port) </p>
+<blockquote>
+<p>从 socket 读取。元素可以用分隔符切分。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line">DataStream&lt;Tuple2&lt;String, Integer&gt;&gt; dataStream = env</span><br><span class="line">        .socketTextStream(<span class="string">&quot;localhost&quot;</span>, <span class="number">9999</span>) <span class="comment">// 监听 localhost 的 9999 端口过来的数据</span></span><br><span class="line">        .flatMap(<span class="keyword">new</span> Splitter())</span><br><span class="line">        .keyBy(<span class="number">0</span>)</span><br><span class="line">        .timeWindow(Time.seconds(<span class="number">5</span>))</span><br><span class="line">        .sum(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-自定义-Data-Source"><a href="#1-2-自定义-Data-Source" class="headerlink" title="1.2. 自定义 Data Source"></a>1.2. 自定义 Data Source</h3><p>Flink 已经提供了若干实现好了的 source function，可以通过实现 SourceFunction 来自定义非并行的 source 或者实现 ParallelSourceFunction 接口或者扩展 RichParallelSourceFunction 来自定义并行的 source。</p>
+<p>addSource </p>
+<blockquote>
+<p>添加一个新的 source function。可以用 addSource(new FlinkKafkaConsumer011&lt;&gt;(…)) 从 Apache Kafka 读取数据。</p>
+</blockquote>
+<h3 id="1-3-总结"><a href="#1-3-总结" class="headerlink" title="1.3. 总结"></a>1.3. 总结</h3><ol>
+<li><p>基于集合: 有界数据集，更偏向于本地测试用</p>
+</li>
+<li><p>基于文件: 适合监听文件修改并读取其内容</p>
+</li>
+<li><p>基于 Socket: 监听主机的 host port，从 Socket 中获取数据</p>
+</li>
+<li><p>自定义 addSource：大多数的场景数据都是无界的，会源源不断过来。</p>
+<blockquote>
+<p>比如去消费 Kafka 某个 topic 上的数据，这时候就需要用到这个 addSource，Flink 提供了 FlinkKafkaConsumer011 等直接使用。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">StreamExecutionEnvironment</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line"><span class="type">DataStream</span>&lt;<span class="type">KafkaEvent</span>&gt; input = env</span><br><span class="line">        .addSource(</span><br><span class="line">            <span class="keyword">new</span> <span class="type">FlinkKafkaConsumer011</span>&lt;&gt;(</span><br><span class="line">                parameterTool.getRequired(<span class="string">&quot;input-topic&quot;</span>), <span class="comment">//从参数中获取传进来的 topic </span></span><br><span class="line">                <span class="keyword">new</span> <span class="type">KafkaEventSchema</span>(),</span><br><span class="line">                parameterTool.getProperties())</span><br><span class="line">            .assignTimestampsAndWatermarks(<span class="keyword">new</span> <span class="type">CustomWatermarkExtractor</span>()));</span><br></pre></td></tr></table></figure>
+
+
+</blockquote>
+</li>
+</ol>
+<p>Flink 目前支持如下面常见的 Source：</p>
+<h2 id="2-Data-Sink"><a href="#2-Data-Sink" class="headerlink" title="2. Data Sink"></a>2. Data Sink</h2><p>Data sink 有点把数据存储下来。Flink 在拿到数据后做一系列的计算后，最后要将计算的结果往下游发送。比如将数据存储到 MySQL、ElasticSearch、Cassandra，或者继续发往 Kafka、 RabbitMQ 等消息队列，更或者直接调用其他的第三方应用服务 (比如告警)。</p>
+<p>常用 Sink 有 Kafka、ElasticSearch、Socket、RabbitMQ、JDBC、Cassandra POJO、File、Print 等 Sink 的方式。</p>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

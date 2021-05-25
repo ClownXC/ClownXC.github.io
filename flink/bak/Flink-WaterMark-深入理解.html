@@ -1,0 +1,287 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分类: Flink | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="在进行 Window 计算操作的时候，如果使用的时间是 Processing Time, Flink 消费数据的时候，它完全不需要关心的数据本身的时间，Processing Time 只是代表数据在 Flink 被处理时的时间，这个时间是顺序的。但是如果使用的是 Event Time 的话面临着事件乱序以及事件延迟问题。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Flink WaterMark 深入理解">
+<meta property="og:url" content="http://joccer.gitee.io/flink/bak/Flink-WaterMark-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="在进行 Window 计算操作的时候，如果使用的时间是 Processing Time, Flink 消费数据的时候，它完全不需要关心的数据本身的时间，Processing Time 只是代表数据在 Flink 被处理时的时间，这个时间是顺序的。但是如果使用的是 Event Time 的话面临着事件乱序以及事件延迟问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-12-13T15:27:06.000Z">
+<meta property="article:modified_time" content="2021-05-24T01:41:00.332Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/flink/bak/Flink-WaterMark-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-05-24 09:41:00'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">Flink WaterMark 深入理解</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><p>在进行 Window 计算操作的时候，如果使用的时间是 Processing Time, Flink 消费数据的时候，它完全不需要关心的数据本身的时间，Processing Time 只是代表数据在 Flink 被处理时的时间，这个时间是顺序的。但是如果使用的是 Event Time 的话面临着事件乱序以及事件延迟问题。</p>
+<a id="more"></a>
+
+
+<p>在理想的情况下，Event Time 和 Process Time 是相等的，数据发生的时间与数据处理的时间没有延迟，但是流处理从事件产生，到流经 source，再到 operator，中间是有一个过程和时间的。虽然大部分情况下，流到 operator 的数据都是按照事件产生的时间顺序来的，但是也不排除由于网络延迟, 分布式等原因，导致乱序的产生，特别是使用 kafka 的话，多个分区的数据无法保证有序。</p>
+<p><strong>然而在有些场景下，其实是特别依赖于事件时间而不是处理时间</strong></p>
+<ol>
+<li>错误日志的时间戳，代表着发生的错误的具体时间，只有知道了这个时间戳，才能去还原那个时间点系统到底发生了什么问题，或者根据那个时间戳去关联其他的事件，找出导致问题触发的罪魁祸首</li>
+<li>设备传感器或者监控系统实时上传对应时间点的设备周围的监控情况，通过监控大屏可以实时查看，不错漏重要或者可疑的事件</li>
+</ol>
+<p>最有意义的事件发生的顺序，而不是事件到达 Flink 后被处理的顺序, Flink 就需要解决事件乱序和事件延迟问题，Flink 引入了 Watermark 机制来解决。</p>
+<h2 id="1-Watermark-概述"><a href="#1-Watermark-概述" class="headerlink" title="1. Watermark 概述"></a>1. Watermark 概述</h2><p>Watermark 是一种衡量 Event Time 进展的机制，它是数据本身的一个隐藏属性，数据本身携带着对应的 Watermark。Watermark 本质来说就是一个时间戳，代表着比这时间戳早的事件已经全部到达窗口，即假设不会再有比这时间戳还小的事件到达，这个假设是触发窗口计算的基础，只有 Watermark 大于窗口对应的结束时间，窗口才会关闭和进行计算。按照这个标准去处理数据，那么如果后面还有比这时间戳更小的数据，那么就视为迟到的数据，对于这部分迟到的数据，Flink 也有相应的机制去处理。</p>
+<img src="/images/flink/00057.png" alt="截屏2021-05-23 下午9.55.37" style="zoom:30%;" />
+
+<p>上图中的数据是 Flink 从消息队列中消费的，然后在 Flink 中有个 4s 的时间窗口，消息队列中的数据是乱序过来的，数据上的数字代表着数据本身的 timestamp，<code>W(4)</code> 和 <code>W(9)</code> 是水印。</p>
+<img src="/images/flink/000058.png" alt="img" style="zoom:30%;" />
+
+<p>经过 Flink 的消费，数据 <code>1</code>、<code>3</code>、<code>2</code> 进入了第一个窗口，然后 <code>7</code> 会进入第二个窗口，接着 <code>3</code> 依旧会进入第一个窗口，然后就有水印了，此时水印过来了，就会发现水印的 timestamp 和第一个窗口结束时间是一致的，那么它就表示在后面不会有比 <code>4</code> 还小的数据过来了，接着就会触发第一个窗口的计算操作，如下图所示：</p>
+<img src="/images/flink/000060.png" alt="截屏2021-05-23 下午9.57.11" style="zoom:30%;" />
+
+<p>那么接着后面的数据 <code>5</code> 和 <code>6</code> 会进入到第二个窗口里面，数据 <code>9</code> 会进入在第三个窗口里面。</p>
+<img src="/images/flink/000067.png" alt="截屏2021-05-23 下午9.57.42" style="zoom:30%;" />
+
+<p>那么当遇到水印 <code>9</code> 时，发现水印比第二个窗口的结束时间 <code>8</code> 还大，所以第二个窗口也会触发进行计算，然后以此继续类推下去。</p>
+<h2 id="2-Watermark-设置"><a href="#2-Watermark-设置" class="headerlink" title="2. Watermark 设置"></a>2. Watermark 设置</h2><p>在 Flink 中，数据处理中需要通过调用 DataStream 中的 assignTimestampsAndWatermarks 方法来分配时间和水印，该方法可以传入两种参数，一个是 AssignerWithPeriodicWatermarks，另一个是 AssignerWithPunctuatedWatermarks。</p>
+<p>设置 Watermark 是两种方式：</p>
+<ul>
+<li><p>AssignerWithPunctuatedWatermarks: 数据流中每一个递增的 EventTime 都会产生一个 Watermark。</p>
+<blockquote>
+<p>在实际的生产环境中，在 TPS 很高的情况下会产生大量的 Watermark，可能在一定程度上会对下游算子造成一定的压力，所以只有在实时性要求非常高的场景才会选择这种方式来进行水印的生成。</p>
+</blockquote>
+</li>
+<li><p>AssignerWithPeriodicWatermarks: 周期性的（一定时间间隔或者达到一定的记录条数）产生一个 Watermark。</p>
+<blockquote>
+<p>在实际的生产环境中，通常这种使用较多，它会周期性产生 Watermark 的方式，但是必须结合时间或者积累条数两个维度，否则在极端情况下会有很大的延时，所以 Watermark 的生成方式需要根据业务场景的不同进行不同的选择。</p>
+</blockquote>
+</li>
+</ul>
+<p>下面再分别详细讲下这两种的实现方式。</p>
+<h3 id="2-1-Punctuated-Watermark"><a href="#2-1-Punctuated-Watermark" class="headerlink" title="2.1. Punctuated Watermark"></a>2.1. Punctuated Watermark</h3><p>AssignerWithPunctuatedWatermarks 接口中包含了 checkAndGetNextWatermark 方法，这个方法会在每次 extractTimestamp() 方法被调用后调用，它可以决定是否要生成一个新的水印，返回的水印只有在不为 null 并且时间戳要大于先前返回的水印时间戳的时候才会发送出去，如果返回的水印是 null 或者返回的水印时间戳比之前的小则不会生成新的水印。</p>
+<p>那么该怎么利用这个来定义水印生成器呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordPunctuatedWatermark</span> <span class="keyword">implements</span> <span class="title">AssignerWithPunctuatedWatermarks</span>&lt;<span class="title">Word</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Watermark <span class="title">checkAndGetNextWatermark</span><span class="params">(Word lastElement, <span class="keyword">long</span> extractedTimestamp)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> extractedTimestamp % <span class="number">3</span> == <span class="number">0</span> ? <span class="keyword">new</span> Watermark(extractedTimestamp) : <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(Word element, <span class="keyword">long</span> previousElementTimestamp)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> element.getTimestamp();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是这种情况下可以为每个事件都生成一个水印，但是因为水印是要在下游参与计算的，所以过多的话会导致整体计算性能下降。</p>
+<h3 id="2-2-Periodic-Watermark"><a href="#2-2-Periodic-Watermark" class="headerlink" title="2.2. Periodic Watermark"></a>2.2. Periodic Watermark</h3><p>通常在生产环境中使用 AssignerWithPeriodicWatermarks 来定期分配时间戳并生成水印比较多</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordWatermark</span> <span class="keyword">implements</span> <span class="title">AssignerWithPeriodicWatermarks</span>&lt;<span class="title">Word</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> currentTimestamp = Long.MIN_VALUE;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(Word word, <span class="keyword">long</span> previousElementTimestamp)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (word.getTimestamp() &gt; currentTimestamp) &#123;</span><br><span class="line">            <span class="keyword">this</span>.currentTimestamp = word.getTimestamp();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> currentTimestamp;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> maxTimeLag = <span class="number">5000</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Watermark(currentTimestamp == Long.MIN_VALUE ? Long.MIN_VALUE : currentTimestamp - maxTimeLag);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的是我根据 Word 数据自定义的水印周期性生成器，在这个类中，有两个方法 extractTimestamp() 和 getCurrentWatermark()。extractTimestamp() 方法是从数据本身中提取 Event Time，该方法会返回当前时间戳与事件时间进行比较，如果事件的时间戳比 currentTimestamp 大的话，那么就将当前事件的时间戳赋值给 currentTimestamp。getCurrentWatermark() 方法是获取当前的水位线，这里有个 maxTimeLag 参数代表数据能够延迟的时间，上面代码中定义的 <code>long maxTimeLag = 5000;</code> 表示最大允许数据延迟时间为 5s，超过 5s 的话如果还来了之前早的数据，那么 Flink 就会丢弃了，因为 Flink 的窗口中的数据是要触发的，不可能一直在等着这些迟到的数据（由于网络的问题数据可能一直没发上来）而不让窗口触发结束进行计算操作。</p>
+<p>通过定义这个时间，可以避免部分数据因为网络或者其他的问题导致不能够及时上传从而不把这些事件数据作为计算的，那么如果在这延迟之后还有更早的数据到来的话，那么 Flink 就会丢弃了，所以合理的设置这个允许延迟的时间也是一门细活，得观察生产环境数据的采集到消息队列再到 Flink 整个流程是否会出现延迟，统计平均延迟大概会在什么范围内波动。这也就是说明了一个事实那就是 Flink 中设计这个水印的根本目的是来解决部分数据乱序或者数据延迟的问题，而不能真正做到彻底解决这个问题，不过这一特性在相比于其他的流处理框架已经算是非常给力了。</p>
+<p><strong>注意</strong>：</p>
+<ol>
+<li><p>使用这种方式周期性生成水印的话，你可以通过 <code>env.getConfig().setAutoWatermarkInterval(...);</code> 来设置生成水印的间隔（每隔 n 毫秒）。</p>
+</li>
+<li><p>通常建议在数据源（source）之后就进行生成水印，或者做些简单操作比如 filter/map/flatMap 之后再生成水印，越早生成水印的效果会更好，也可以直接在数据源头就做生成水印。比如你可以在 source 源头类中的 run() 方法里面这样定义</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(SourceContext&lt;MyType&gt; ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="comment">/* condition */</span>) &#123;</span><br><span class="line">        MyType next = getNext();</span><br><span class="line">        ctx.collectWithTimestamp(next, next.getEventTimestamp());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (next.hasWatermarkTime()) &#123;</span><br><span class="line">            ctx.emitWatermark(<span class="keyword">new</span> Watermark(next.getWatermarkTime()));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-Kafka-分区的时间戳"><a href="#2-3-Kafka-分区的时间戳" class="headerlink" title="2.3. Kafka 分区的时间戳"></a>2.3. Kafka 分区的时间戳</h3><p>当以 Kafka 来作为数据源的时候，通常每个 Kafka 分区的数据时间戳是递增的（事件是有序的），但是当作业设置多个并行度的时候，Flink 去消费 Kafka 数据流是并行的，并行的消费 Kafka 分区的数据就会导致打乱原每个分区的数据时间戳的顺序。在这种情况下，可以使用 Flink 中的 <code>Kafka-partition-aware</code> 特性来生成水印，使用该特性后，水印会在 Kafka 消费端生成，然后每个 Kafka 分区和每个分区上的水印最后的合并方式和水印在数据流 shuffle 过程中的合并方式一致。</p>
+<p>如果事件时间戳严格按照每个 Kafka 分区升序，则可以使用前面提到的 AscendingTimestampExtractor 水印生成器来为每个分区生成水印。下面代码教大家如何使用 <code>per-Kafka-partition</code> 来生成水印。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">FlinkKafkaConsumer011&lt;Event&gt; kafkaSource = <span class="keyword">new</span> FlinkKafkaConsumer011&lt;&gt;(<span class="string">&quot;zhisheng&quot;</span>, schema, props);</span><br><span class="line">kafkaSource.assignTimestampsAndWatermarks(<span class="keyword">new</span> AscendingTimestampExtractor&lt;Event&gt;() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">extractAscendingTimestamp</span><span class="params">(Event event)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> event.eventTimestamp();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">DataStream&lt;Event&gt; stream = env.addSource(kafkaSource);</span><br></pre></td></tr></table></figure>
+
+<p>下图表示水印在 Kafka 分区后如何通过流数据流传播：</p>
+<img src="/images/flink/00056.png" alt="截屏2021-05-24 上午9.29.30" style="zoom:30%;" />
+
+<h2 id="3-延迟数据该处理"><a href="#3-延迟数据该处理" class="headerlink" title="3. 延迟数据该处理"></a>3. 延迟数据该处理</h2><ol>
+<li><p>丢弃</p>
+<blockquote>
+<p>在 Flink 中，对这么延迟数据的默认处理方式是丢弃。</p>
+</blockquote>
+</li>
+<li><p>allowedLateness 再次指定允许数据延迟的时间</p>
+<blockquote>
+<p>allowedLateness 表示允许数据延迟的时间，这个方法是在 WindowedStream 中的，用来设置允许窗口数据延迟的时间，超过这个时间的元素就会被丢弃，这个的默认值是 0</p>
+</blockquote>
+</li>
+<li><p>sideOutputLateData 收集迟到的数据</p>
+<blockquote>
+<p>sideOutputLateData 是 WindowedStream 中的方法，该方法会将延迟的数据发送到给定 OutputTag 的 side output 中去，可以通过 <code>SingleOutputStreamOperator.getSideOutput(OutputTag)</code> 来获取这些延迟的数据。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h2><p>设置 Periodic Watermark 时，是允许提供一个参数，表示数据最大的延迟时间。这个值要结合业务以及数据的情况来设置，如果该值设置的太小会导致数据因为网络或者其他的原因从而导致乱序或者延迟的数据太多，那么最后窗口触发的时候，可能窗口里面的数据量很少，那么这样计算的结果很可能误差会很大，对于有的场景(要求正确性比较高)是不太符合需求的。但是如果该值设置的太大，那么就会导致很多窗口一直在等待延迟的数据，从而一直不触发，这样首先就会导致数据的实时性降低，另外将这么多窗口的数据存在内存中，也会增加作业的内存消耗，从而可能会导致作业发生 OOM 的问题。</p>
+<p>水印就是一个时间戳，可以给每个消息添加一个 允许一定延迟 的时间戳</p>
+<ul>
+<li>窗口可以继续计算一定时间范围内延迟的消息</li>
+<li>添加水印后，窗口会等待，再执行计算。若超过等待时间，则舍弃。</li>
+<li>窗口执行计算时间由 水印时间 来触发，当接收到消息的 watermark &gt;= endtime ，触发计算</li>
+</ul>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

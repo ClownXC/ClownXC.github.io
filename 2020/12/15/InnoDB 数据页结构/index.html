@@ -1,0 +1,323 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>InnoDB 数据页结构 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="页是 InnoDB 管理存储空间的基本单位，一个页的大小一般是 16KB。InnoDB 为了不同的目的而设计了许多种不同类型的页，比如存放表空间头部信息的页，存放 Insert Buffer 信息的页，存放INODE信息的页，存放undo日志信息的页等等等等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="InnoDB 数据页结构">
+<meta property="og:url" content="http://joccer.gitee.io/2020/12/15/InnoDB%20%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="页是 InnoDB 管理存储空间的基本单位，一个页的大小一般是 16KB。InnoDB 为了不同的目的而设计了许多种不同类型的页，比如存放表空间头部信息的页，存放 Insert Buffer 信息的页，存放INODE信息的页，存放undo日志信息的页等等等等。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2020-12-15T15:55:07.000Z">
+<meta property="article:modified_time" content="2021-05-24T15:53:42.180Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/2020/12/15/InnoDB%20%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-05-24 23:53:42'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">1. 数据页结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%95%B0%E6%8D%AE%E8%AE%B0%E5%BD%95%E5%9C%A8%E9%A1%B5%E4%B8%AD%E7%9A%84%E5%AD%98%E5%82%A8"><span class="toc-number">2.</span> <span class="toc-text">2. 数据记录在页中的存储</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%95%B0%E6%8D%AE%E8%AE%B0%E5%BD%95%E5%A4%B4%E4%BF%A1%E6%81%AF"><span class="toc-number">3.</span> <span class="toc-text">3. 数据记录头信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Page-Directory-%E9%A1%B5%E7%9B%AE%E5%BD%95"><span class="toc-number">4.</span> <span class="toc-text">4. Page Directory (页目录)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Page-Header"><span class="toc-number">5.</span> <span class="toc-text">5. Page Header</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-File-Header"><span class="toc-number">6.</span> <span class="toc-text">6. File Header</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-File-Trailer"><span class="toc-number">7.</span> <span class="toc-text">7. File Trailer</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">InnoDB 数据页结构</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-12-15T15:55:07.000Z" title="发表于 2020-12-15 23:55:07">2020-12-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-05-24T15:53:42.180Z" title="更新于 2021-05-24 23:53:42">2021-05-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p><code>页</code>是 <code>InnoDB</code> 管理存储空间的基本单位，一个页的大小一般是 <code>16KB</code>。<code>InnoDB </code>为了不同的目的而设计了许多种不同类型的<code>页</code>，比如存放表空间头部信息的页，存放 <code>Insert Buffer</code> 信息的页，存放<code>INODE</code>信息的页，存放<code>undo</code>日志信息的页等等等等。</p>
+<a id="more"></a>
+
+<h2 id="1-数据页结构"><a href="#1-数据页结构" class="headerlink" title="1. 数据页结构"></a>1. 数据页结构</h2><p>数据页代表的这块<code>16KB</code>大小的存储空间可以被划分为多个部分，不同部分有不同的功能</p>
+<img src="/images/mysql/2.png" alt="截屏2021-05-18 上午10.52.13" style="zoom:50%;" />
+
+<p>一个<code>InnoDB</code>数据页的存储空间大致被划分成了<code>7</code>个部分，有的部分占用的字节数是确定的，有的部分占用的字节数是不确定的</p>
+<p><img src="/images/mysql/6.png" alt="截屏2021-05-18 下午2.31.52"></p>
+<h2 id="2-数据记录在页中的存储"><a href="#2-数据记录在页中的存储" class="headerlink" title="2. 数据记录在页中的存储"></a>2. 数据记录在页中的存储</h2><p>在页的 7 个组成部分中，存储的记录会按照指定的 <code>行格式</code> 存储到 <code>User Records</code> 部分。但是在一开始生成页的时候，并没有 <code>User Records</code> 这个部分，每当插入一条记录，都会从 <code>Free Space</code> 部分，也就是尚未使用的存储空间中申请一个记录大小的空间划分到 <code>User Records</code> 部分，当 <code>Free Space</code> 部分的空间全部被 <code>User Records</code> 部分替代掉之后，意味着这个页使用完了，如果还有新的记录插入的话，就需要去申请新的页了，这个过程的图示如下：</p>
+<img src="/images/mysql/5.png" alt="截屏2021-05-18 上午11.25.46" style="zoom:50%;" />
+
+<h2 id="3-数据记录头信息"><a href="#3-数据记录头信息" class="headerlink" title="3. 数据记录头信息"></a>3. 数据记录头信息</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE page_demo(</span><br><span class="line">    -&gt;     c1 INT,</span><br><span class="line">    -&gt;     c2 INT,</span><br><span class="line">    -&gt;     c3 VARCHAR(10000),</span><br><span class="line">    -&gt;     PRIMARY KEY (c1)</span><br><span class="line">    -&gt; ) CHARSET&#x3D;ascii ROW_FORMAT&#x3D;Compact;</span><br></pre></td></tr></table></figure>
+
+<p><code>page_demo </code>表有 3 个列，其中 <code>c1</code> 和 <code>c2</code> 列是用来存储整数的，<code>c3 </code>列是用来存储字符串的。把 <em><strong>c1</strong></em> 列指定为主键，所以在具体的行格式中 InnoDB 不去创建 <em><strong>row_id</strong></em> 隐藏列。个表指定了 <code>ascii</code> 字符集以及 <code>Compact</code> 的行格式。所以表中记录的行格式示意图如下图所示</p>
+<p><img src="/images/mysql/8.png" alt="截屏2021-05-18 下午3.04.39"></p>
+<img src="/images/mysql/9.png" alt="截屏2021-05-18 下午3.21.03" style="zoom:30%;" />
+
+<p>在<code>page_demo</code>表的行格式演示图中画出有关的头信息属性以及<code>c1</code>、<code>c2</code>、<code>c3</code>列的信息简化后的行格式示意图如下图所示</p>
+<p>向 <code>page_demo</code> 表中插入几条记录：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; INSERT INTO page_demo VALUES(1, 100, &#39;aaaa&#39;), (2, 200, &#39;bbbb&#39;), (3, 300, &#39;cccc&#39;), (4, 400, &#39;dddd&#39;);</span><br></pre></td></tr></table></figure>
+
+<img src="/images/mysql/10.png" alt="截屏2021-05-18 下午3.37.48" style="zoom:50%;" />
+
+<ul>
+<li><p>delete_mask</p>
+<p>这个属性标记着当前记录是否被删除，占用1个二进制位，值为<code>0</code>的时候代表记录并没有被删除，为<code>1</code>的时候代表记录被删除掉</p>
+<blockquote>
+<p>被删除的记录之所以不立即从磁盘上移除，是因为移除它们之后把其他的记录在磁盘上重新排列需要性能消耗，所以只是打一个删除标记而已，所有被删除掉的记录都会组成一个所谓的<code>垃圾链表</code>，在这个链表中的记录占用的空间称之为所谓的<code>可重用空间</code>，之后如果有新记录插入到表中的话，可能把这些被删除的记录占用的存储空间覆盖掉。</p>
+</blockquote>
+</li>
+<li><p>min_rec_mask</p>
+<p>B+ 树的每层非叶子节点中的最小记录都会添加该标记</p>
+</li>
+<li><p>n_owned</p>
+<p>当前记录拥有的记录数</p>
+</li>
+<li><p>heap_no</p>
+<p>表示当前记录在本<code>页</code>中的位置</p>
+<blockquote>
+<p>怎么不见 <code>heap_no</code> 值为 <code>0</code> 和 <code>1</code> 的记录呢 ？</p>
+<p><code>InnoDB </code> 自动给每个页里边儿加了两个记录，由于这两个记录并不是用户自己插入的，称为<code>伪记录</code>或者<code>虚拟记录</code>。这两个伪记录一个代表<code>最小记录</code>，一个代表<code>最大记录</code></p>
+<p>对于一条完整的记录来说，比较记录的大小就是比较<code>主键</code>的大小。插入的4行记录的主键值分别是：<code>1</code>、<code>2</code>、<code>3</code>、<code>4</code>，这也就意味着这4条记录的大小从小到大依次递增。</p>
+</blockquote>
+<p>但是不管用户向<code>页</code>中插入了多少记录，<code>InnoDB</code>的规定定义的两条伪记录分别为最小记录与最大记录。这两条记录是由 5 字节大小的 <code>记录头信息</code>和 8 字节大小的一个固定的部分组成的</p>
+</li>
+</ul>
+<p><img src="/images/mysql/13.png" alt="截屏2021-05-18 下午4.21.56"></p>
+<p>最小记录和最大记录的<code>heap_no</code>值分别是<code>0</code>和<code>1</code>，也就是说它们的位置最靠前</p>
+<ul>
+<li><p><code>record_type</code></p>
+<p>这个属性表示当前记录的类型，一共有 4 种类型的记录，<code>0 </code>表示普通记录，<code>1 </code>表示 B+ 树非叶节点记录，<code>2 </code>表示最小记录，<code>3</code> 表示最大记录。</p>
+</li>
+<li><p><code>next_record</code></p>
+<p>表示从当前记录的真实数据到下一条记录的真实数据的地址偏移量。</p>
+<p><code>下一条记录</code> 指得并不是按照用户插入顺序的下一条记录，而是按照主键值由小到大的顺序的下一条记录。而且规定 <em><strong>Infimum 记录（也就是最小记录）</strong></em> 的下一条记录就本页中主键值最小的用户记录，而本页中主键值最大的用户记录的下一条记录就是 <em><strong>Supremum记录（也就是最大记录）</strong></em></p>
+</li>
+</ul>
+<p><img src="/images/mysql/15.png" alt="截屏2021-05-18 下午4.47.14"></p>
+<p>记录按照主键从小到大的顺序形成了一个单链表。<code>最大记录</code>的<code>next_record</code>的值为<code>0</code>，这也就是说最大记录是没有<code>下一条记录</code>了，它是这个单链表中的最后一个节点</p>
+<p>如果从中删除掉一条记录，这个链表也是会跟着变化的，比如我们把第2条记录删掉</p>
+<p><img src="/images/mysql/16.png" alt="截屏2021-05-18 下午4.53.16"></p>
+<ul>
+<li>第2条记录并没有从存储空间中移除，而是把该条记录的<code>delete_mask</code>值设置为<code>1</code>。</li>
+<li>第2条记录的<code>next_record</code>值变为了0，意味着该记录没有下一条记录了。</li>
+<li>第1条记录的<code>next_record</code>指向了第3条记录。</li>
+<li><code>最大记录</code>的<code>n_owned</code>值从<code>5</code>变成了<code>4</code>，</li>
+</ul>
+<p>**<font color='red'>注： </font>**主键值为<code>2</code>的记录被删掉，但是存储空间却没有回收，如果我们再次把这条记录插入到表中<code>InnoDB</code> 不回有因为新记录的插入而为它申请新的存储空间，而是直接复用了原来被删除记录的存储空间</p>
+<h2 id="4-Page-Directory-页目录"><a href="#4-Page-Directory-页目录" class="headerlink" title="4. Page Directory (页目录)"></a>4. Page Directory (页目录)</h2><p>记录在页中按照主键值由小到大顺序串联成一个单链表，那根据主键值查找页中的某条记录。<code>InnoDB</code> 为记录制作了一个类似书本的页目录</p>
+<ol>
+<li><p>将所有正常的记录(包括最大和最小记录，不包括标记为已删除的记录)划分为几个组。</p>
+</li>
+<li><p>每个组的最后一条记录(也就是组内最大的那条记录)的头信息中的 <code>n_owned</code> 属性表示该组内共有几条记录。</p>
+</li>
+<li><p>将每个组的最后一条记录的地址偏移量单独提取出来按顺序存储到靠近<code>页</code>的尾部的地方，这个地方就是所谓的<code>Page Directory</code>，也就是<code>页目录</code>。页面目录中的这些地址偏移量被称为<code>槽</code>（<code>Slot</code>），所以这个页面目录就是由<code>槽</code>组成的。</p>
+</li>
+</ol>
+<p><img src="/images/mysql/22.png" alt="截屏2021-05-18 下午5.10.31"></p>
+<ul>
+<li><p>现在 <code>页目录</code> 部分中有两个槽，也就意味记录被分成了两个组，<code>槽0</code> 中的值是 <code>112</code>，代表最大记录的地址偏移量(就是从页面的0字节开始数，数112个字节)；<code>槽1 </code>中的值是 <code>99</code> ，代表最小记录的地址偏移量。</p>
+</li>
+<li><p>注意最小和最大记录的头信息中的 <code>n_owned</code> 属性</p>
+<ul>
+<li>最小记录的 <code>n_owned</code> 值为 <code>1</code>，这就代表着以最小记录结尾的这个分组中只有 <code>1</code> 条记录，也就是最小记录本身。</li>
+<li>最大记录的 <code>n_owned</code> 值为 <code>5</code>，这就代表着以最大记录结尾的这个分组中只有 <code>5</code> 条记录，包括最大记录本身还有我们用户插入的 <code>4</code> 条记录。</li>
+</ul>
+</li>
+</ul>
+<p><code>InnoDB</code> 对每个分组中的记录条数是有规定的：对于最小记录所在的分组只能有 <em><strong>1</strong></em> 条记录，最大记录所在的分组拥有的记录条数只能在 <em><strong>1~8</strong></em> 条之间，剩下的分组中记录的条数范围只能在是 <em><strong>4~8</strong></em> 条之间。所以分组是按照下边的步骤进行的：</p>
+<ul>
+<li><p>初始情况下一个数据页里只有最小记录和最大记录两条记录，它们分属于两个分组。</p>
+</li>
+<li><p>每插入一条记录，都会从<code>页目录</code>中找到主键值比本记录的主键值大并且差值最小的槽，然后把该槽对应的记录的 <code>n_owned</code>值加1，表示本组内又添加了一条记录，直到该组中的记录数等于8个。</p>
+</li>
+<li><p>在一个组中的记录数等于8个后再插入一条记录时，会将组中的记录拆分成两个组，一个组中4条记录，另一个5条记录。这个过程会在 <code>页目录</code> 中新增一个<code>槽</code>来记录这个新增分组中最大的那条记录的偏移量。</p>
+</li>
+</ul>
+<p>再往 <code>page_demo</code> 表中添加一些记录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; INSERT INTO page_demo VALUES(5, 500, &#39;eeee&#39;), (6, 600, &#39;ffff&#39;), (7, 700, &#39;gggg&#39;), (8, 800, &#39;hhhh&#39;), (9, 900, &#39;iiii&#39;), (10, 1000, &#39;jjjj&#39;), (11, 1100, &#39;kkkk&#39;), (12, 1200, &#39;llll&#39;);</span><br></pre></td></tr></table></figure>
+
+<img src="/images/mysql/32.png" alt="截屏2021-05-18 下午5.39.03" style="zoom:50%;" />
+
+<p>各个槽代表的记录的主键值都是从小到大排序的，使用 <code>二分法</code> 来进行快速查找。4个槽的编号分别是：<code>0</code>、<code>1</code>、<code>2</code>、<code>3</code>，所以初始情况下最低的槽就是<code>low=0</code>，最高的槽就是<code>high=3</code>。找主键值为<code>5</code>的记录，过程是这样的：</p>
+<ol>
+<li><p>计算中间槽的位置：<code>(0+3)/2=1</code>，所以查看<code>槽 1</code>对应记录的主键值为<code>4</code>，又因为<code>4 &lt; 5</code>，所以设置<code>low = 1</code>，<code>high</code>保持不变。</p>
+</li>
+<li><p>重新计算中间槽的位置：<code>(1+3)/2=2</code>，所以查看<code>槽 2</code> 对应的主键值为<code>8</code>。所以设置<code>high = 2</code>，<code>low</code> 保持不变。</p>
+</li>
+<li><p>因为 <code>high - low</code> 的值为 1，所以确定主键值为<code>5</code>的记录在 <code>槽2</code> 对应的组中，接下来就是通过遍历 <code>槽2</code> 对应的组的链表来进行查找了。由于一个组中包含的记录条数只能是1~8条，所以遍历一个组中的记录的代价是很小的。</p>
+</li>
+</ol>
+<p>所以在一个数据页中查找指定主键值的记录的过程分为两步：</p>
+<ol>
+<li><p>通过二分法确定该记录所在的槽。</p>
+</li>
+<li><p>通过记录的 <code>next_record</code> 属性遍历该槽所在的组中的各个记录。</p>
+</li>
+</ol>
+<h2 id="5-Page-Header"><a href="#5-Page-Header" class="headerlink" title="5. Page Header"></a>5. Page Header</h2><p><code>Page Header</code>  一个数据页中存储的记录的状态信息，比如本页中已经存储了多少条记录，第一条记录的地址是什么，页目录中存储了多少个槽等等，它是 <code>页</code> 结构的第二部分，这个部分占用固定的 <code>56</code> 个字节，专门存储各种状态信息。</p>
+<p><img src="/images/mysql/51.png" alt="截屏2021-05-18 下午9.26.39"></p>
+<h2 id="6-File-Header"><a href="#6-File-Header" class="headerlink" title="6. File Header"></a>6. File Header</h2><p><img src="/Users/joker/Documents/chen_blog/source/images/mysql/61.png" alt="截屏2021-05-18 下午10.01.13"></p>
+<h2 id="7-File-Trailer"><a href="#7-File-Trailer" class="headerlink" title="7. File Trailer"></a>7. File Trailer</h2><p><code>InnoDB</code> 存储引擎会把数据存储到磁盘上，但是磁盘速度太慢，需要以 <code>页</code> 为单位把数据加载到内存中处理，如果该页中的数据在内存中被修改了，那么在修改后的某个时间需要把数据同步到磁盘中。但是在同步了一半的时候中断电，为了检测一个页是否完整， <code>InnoDB</code> 在每个页的尾部都加了一个 <code>File Trailer</code> 部分，这个部分由<code>8</code>个字节组成，可以分成 2 个小部分</p>
+<ol>
+<li><p>前 4 个字节代表页的校验和</p>
+<p>和 <code>File Header</code> 中的校验和相对应的。每当一个页面在内存中修改了，在同步之前就要把它的校验和算出来，因为<code>File Header</code>在页面的前边，所以校验和会被首先同步到磁盘，当完全写完时，校验和也会被写到页的尾部，如果完全同步成功，则页的首部和尾部的校验和应该是一致的。如果写了一半儿断电了，那么在<code>File Header</code>中的校验和就代表着已经修改过的页，而在<code>File Trialer </code>中的校验和代表着原先的页，二者不同则意味着同步中间出了错。</p>
+</li>
+<li><p>后4个字节代表页面被最后修改时对应的日志序列位置（LSN）</p>
+<p>这个部分也是为了校验页的完整性的</p>
+</li>
+</ol>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">周晓晨</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://joccer.gitee.io/2020/12/15/InnoDB%20%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84/">http://joccer.gitee.io/2020/12/15/InnoDB%20%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://joccer.gitee.io" target="_blank">周晓晨</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/image/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/image/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/image/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/image/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Redis 6.0 新特性</div></div></a></div><div class="next-post pull-right"><a href="/2020/10/14/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">消息系统-Kafka：Kafka副本读写流程</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></article></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分类: Flink | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="反压机制是指系统能够自己检测到被阻塞的 Operator，然后自适应地降低源头或上游数据的发送速率，从而维持整个系统的稳定。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BackPressure">
+<meta property="og:url" content="http://joccer.gitee.io/flink/bak/Flink%20Job%20BackPressure.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="反压机制是指系统能够自己检测到被阻塞的 Operator，然后自适应地降低源头或上游数据的发送速率，从而维持整个系统的稳定。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-12-20T15:00:13.000Z">
+<meta property="article:modified_time" content="2021-05-23T12:01:03.279Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/flink/bak/Flink%20Job%20BackPressure"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-05-23 20:01:03'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">BackPressure</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><p>反压机制是指系统能够自己检测到被阻塞的 Operator，然后自适应地降低源头或上游数据的发送速率，从而维持整个系统的稳定。</p>
+<a id="more"></a>
+
+<p>反压通常产生于这样的场景：短时间的负载高峰导致系统接收数据的速率远高于它处理数据的速率。许多日常问题都会导致反压，例如，垃圾回收停顿可能会导致流入的数据快速堆积，或遇到大促、秒杀活动导致流量陡增。反压如果不能得到正确的处理，可能会导致资源耗尽甚至系统崩溃。</p>
+<h2 id="1-Flink-网络流控"><a href="#1-Flink-网络流控" class="headerlink" title="1. Flink 网络流控"></a>1. Flink 网络流控</h2><p>在 Flink 1.5 之前，Flink 没有使用任何复杂的机制来解决反压问题， 利用自身作为纯数据流引擎的优势来优雅地响应反压问题</p>
+<p>如下图所示，Job 分为 Task A、B、C，Task A 是 Source Task、Task B 处理转换数据、Task C 是 Sink Task。</p>
+<ol>
+<li>Task A 从外部 Source 端读取到数据后将数据序列化放到 Send Buffer 中，再由 Task A 的 Send Buffer 发送到 Task B 的 Receive Buffer；</li>
+<li>Task B 的算子从 Task B 的 Receive Buffer 中将数据反序列后进行处理，将处理后数据序列化放到 Task B 的 Send Buffer 中，再由 Task B 的 Send Buffer 发送到 Task C 的 Receive Buffer；</li>
+<li>Task C 再从 Task C 的 Receive Buffer 中将数据反序列后输出到外部 Sink 端，这就是所有数据的传输和处理流程。</li>
+</ol>
+<p><img src="/images/flink/0021.png" alt="截屏2021-05-23 下午7.28.00"></p>
+<p>Task C 由于各种原因吞吐量急剧降低，那么肯定会造成 Task C 的 Receive Buffer 中堆积大量数据，此时 Task B 还在给 Task C 发送数据，但是毕竟内存是有限的，持续一段时间后 Task C 的 Receive Buffer 满了，此时 Task B 发现 Task C 的 Receive Buffer 满了后，就不会再往 Task C 发送数据了，Task B 处理完的数据就开始往 Task B 的 Send Buffer 积压，一段时间后 Task B 的 Send Buffer 也满了，Task B 的处理就会被阻塞，这时 Task A 还在往 Task B 的 Receive Buffer 发送数据。</p>
+<p>同样的道理，Task B 的 Receive Buffer 很快满了，导致 Task A 不再往 Task B 发送数据，Task A 的 Send Buffer 也会被用完，Task A 是 Source Task 没有上游，所以 Task A 直接降低从外部 Source 端读取数据的速率甚至完全停止读取数据。</p>
+<p>通过以上原理，Flink 将下游的压力传递给上游。</p>
+<p>Task B 会一直向 Task C 发送探测信号，检测 Task C 的 Receive Buffer 是否有足够的空间，当 Task C 的负载能力恢复后，Task C 会优先消费 Task C Receive Buffer 中的数据，Task C Receive Buffer 中有足够的空间时，Task B 会从 Send Buffer 继续发送数据到 Task C 的 Receive Buffer，Task B 的 Send Buffer 有足够空间后，Task B 又开始正常处理数据，很快 Task B 的 Receive Buffer 中也会有足够空间，同理，Task A 会从 Send Buffer 继续发送数据到 Task B 的 Receive Buffer，Task A 的 Receive Buffer 有足够空间后，Task A 就可以从外部的 Source 端开始正常读取数据了</p>
+<p>Flink 将下游负载过低的消息传递给上游。所以说 Flink 利用自身纯数据流引擎的优势优雅地响应反压问题，并没有任何复杂的机制来解决反压。</p>
+<p>上述流程，就是 Flink 动态限流（反压机制）的简单描述，可以看到 Flink 的反压是从下游往上游传播的，一直往上传播到 Source Task 后，Source Task 最终会降低或提升从外部 Source 端读取数据的速率</p>
+<h2 id="2-动态反馈两种情况"><a href="#2-动态反馈两种情况" class="headerlink" title="2. 动态反馈两种情况"></a>2. 动态反馈两种情况</h2><h3 id="2-1-跨-Task"><a href="#2-1-跨-Task" class="headerlink" title="2.1. 跨 Task"></a>2.1. 跨 Task</h3><p>Task B 和 Task C 可能在同一个 TaskManager 上运行，也有可能不在同一个 TaskManager 上运行</p>
+<ol>
+<li>一个 TaskManager 包含了多个 Slot，Task B 和 Task C 都运行在这个 TaskManager 上。此时 Task B 给 Task C 发送数据实际上是同一个 JVM 内的数据发送，所以<strong>不存在网络通信</strong>。</li>
+<li>Task B 和 Task C 运行在不同的 TaskManager 中。此时 Task B 给 Task C 发送数据是跨节点的，所以<strong>会存在网络通信</strong>。</li>
+</ol>
+<h3 id="2-2-Task-内"><a href="#2-2-Task-内" class="headerlink" title="2.2. Task 内"></a>2.2. Task 内</h3><ul>
+<li>当 Task B 的 Send Buffer 满了，如何告诉 Task B 内部的 Receive Buffer，自身的 Send Buffer 已经满了？要让 Task B 的 Receive Buffer 感受到压力，才能把下游的压力传递到 Task A。</li>
+<li>当 Task B 的 Send Buffer 空了，如何告诉 Task B 内部的 Receive Buffer 下游 Send Buffer 空了，并把下游负载很低的消息传递给 Task A。</li>
+</ul>
+<h2 id="3-TaskManager-网络传输相关组件"><a href="#3-TaskManager-网络传输相关组件" class="headerlink" title="3. TaskManager 网络传输相关组件"></a>3. TaskManager 网络传输相关组件</h2><p>TaskManager 之间数据传输流向如图所示: Source Task 给 Task B 发送数据，Source Task 做为 Producer，Task B 做为 Consumer，Producer 端产生的数据最后通过网络发送给 Consumer 端。</p>
+<h3 id="3-1-TaskManager-之间数据传输过程，"><a href="#3-1-TaskManager-之间数据传输过程，" class="headerlink" title="3.1. TaskManager 之间数据传输过程，"></a>3.1. TaskManager 之间数据传输过程，</h3><p>发送方和接收方各有三层的 Buffer。当 Task B 往下游发送数据时，整个流程与 Source Task 给 Task B 发送数据的流程类似。</p>
+<img src="/images/flink/00031.png" alt="截屏2021-05-23 下午7.35.42" style="zoom:50%;" />
+
+<ul>
+<li>Producer 端 Operator 实例对一条条的数据进行处理，处理完的数据首先缓存到 ResultPartition 内的 ResultSubPartition 中。</li>
+<li>ResultSubPartition 中一个 Buffer 写满或者超时后，就会触发将 ResultSubPartition 中的数据拷贝到 Producer 端 Netty 的 Buffer 中，之后又把数据拷贝到 Socket 的 Send Buffer 中，这里有一个从用户态拷贝到内核态的过程，最后通过 Socket 发送网络请求，把 Send Buffer 中的数据发送到 Consumer 端的 Receive Buffer。</li>
+<li>数据到达 Consumer 端后，再依次从 Socket 的 Receive Buffer 拷贝到 Netty 的 Buffer，再拷贝到 Consumer Operator InputGate 内的 InputChannel 中，最后 Consumer Operator 就可以读到数据进行处理了。</li>
+</ul>
+<h2 id="3-2-InputGate-amp-ResultPartition-内存申请"><a href="#3-2-InputGate-amp-ResultPartition-内存申请" class="headerlink" title="3.2. InputGate &amp; ResultPartition 内存申请"></a>3.2. InputGate &amp; ResultPartition 内存申请</h2><ul>
+<li>在 TaskManager 初始化时，Flink 会在 NetworkBufferPool 中生成一定数量的内存块 MemorySegment，内存块的总数量就代表了网络传输中所有可用的内存。</li>
+<li>NetworkBufferPool 是 Task 之间共享的，每个 TaskManager 只会实例化一个。</li>
+<li>Task 线程启动时，会为 Task 的 InputChannel 和 ResultSubPartition 分别创建一个 LocalBufferPool。InputGate 或 ResultPartition 需要写入数据时，会向相对应的 LocalBufferPool 申请内存，当 LocalBufferPool 没有足够的内存且还没到达 LocalBufferPool 设置的上限时，就会向 NetworkBufferPool 申请内存，并将内存分配给相应的 InputChannel 或 ResultSubPartition。</li>
+<li>启动任务时可以指定该任务最多可能申请多大的内存空间用于 NetworkBufferPool。</li>
+<li>当 InputChannel 的内存块被 Operator 读取消费掉或 ResultSubPartition 的内存块已经被写入到了 Netty 中，那么 InputChannel 和 ResultSubPartition 中的内存块就可以还给 LocalBufferPool 了，如果 LocalBufferPool 中有较多空闲的内存块，就会还给 NetworkBufferPool。</li>
+</ul>
+<img src="/images/flink/00032.png" alt="截屏2021-05-23 下午7.47.14" style="zoom:50%;" />
+
+
+
+<h2 id="4-动态反馈实现"><a href="#4-动态反馈实现" class="headerlink" title="4. 动态反馈实现"></a>4. 动态反馈实现</h2><h3 id="4-1-跨-Task-且-Task-不在同一个-TaskManager"><a href="#4-1-跨-Task-且-Task-不在同一个-TaskManager" class="headerlink" title="4.1. 跨 Task 且 Task 不在同一个 TaskManager"></a>4.1. 跨 Task 且 Task 不在同一个 TaskManager</h3><blockquote>
+<p>Producer 端生产数据速率为 2MB/s，Consumer 消费数据速率为 1MB/s。持续下去，下游消费较慢，Buffer 容量又是有限的</p>
+</blockquote>
+<img src="/images/flink/000033.png" alt="截屏2021-05-23 下午7.51.52" style="zoom:50%;" />
+
+<p>数据从 Task A 的 ResultSubPartition 按照上面的流程最后传输到 Task B 的 InputChannel 供 Task B 读取并计算。持续一段时间后，由于 Task B 消费比较慢，导致 InputChannel 被占满了，所以 InputChannel 向 LocalBufferPool 申请新的 Buffer 空间，LocalBufferPool 分配给 InputChannel 一些 Buffer。</p>
+<p>再持续一段时间后，InputChannel 重复向 LocalBufferPool 申请 Buffer 空间，导致 LocalBufferPool 内的 Buffer 空间被用完了，所以 LocalBufferPool 向 NetWorkBufferPool 申请 Buffer 空间，NetWorkBufferPool 给 LocalBufferPool 分配 Buffer。再持续下去，NetWorkBufferPool 也用完</p>
+<blockquote>
+<p>或者说 NetWorkBufferPool 不能把自己的 Buffer 全分配给 Task B 对应的 LocalBufferPool，因为 TaskManager 上一般会运行了多个 Task，每个 Task 只能使用 NetWorkBufferPool 中的一部分。</p>
+</blockquote>
+<p>此时可以认为 Task B 可以使用的 LocalBufferPool 和 NetWorkBufferPool 都用完了。此时 Netty 还想把数据写入到 InputChannel，但是发现 InputChannel 满了，所以 Socket 层会把 Netty 的 <code>autoRead</code> disable，Netty 不会再从 Socket 中去读消息。由于 Netty 不从 Socket 的 Receive Buffer 读数据，所以很快 Socket 的 Receive Buffer 就会变满，TCP 的 Socket 通信有动态反馈的流控机制，会把下游容量为 0 的消息反馈给上游发送端，所以上游的 Socket 就不会往下游再发送数据。</p>
+<img src="/images/flink/000035.png" alt="截屏2021-05-23 下午7.53.50" style="zoom:50%;" />
+
+<p>此时 Task A 持续生产数据，发送端 Socket 的 Send Buffer 很快被打满，所以 Task A 端的 Netty 也会停止往 Socket 写数据。数据会在 Netty 的 Buffer 中缓存数据，Netty 的 Buffer 是无界的，可以设置 Netty 的高水位，即：设置一个 Netty 中 Buffer 的上限。</p>
+<p>所以每次 ResultSubPartition 向 Netty 中写数据时，都会检测 Netty 是否已经到达高水位，如果达到高水位就不会再往 Netty 中写数据，防止 Netty 的 Buffer 无限制的增长。接下来，数据会在 Task A 的 ResultSubPartition 中累积，ResultSubPartition 数据写满后，会向 LocalBufferPool 申请新的 Buffer 空间，LocalBufferPool 分配给 ResultSubPartition 一些 Buffer。</p>
+<p>持续下去 LocalBufferPool 也会用完，LocalBufferPool 再向 NetWorkBufferPool 申请 Buffer。NetWorkBufferPool 也会被用完，或者说 NetWorkBufferPool 不能把自己的 Buffer 全分配给 Task A 对应的 LocalBufferPool，因为 TaskManager 上一般会运行了多个 Task，每个 Task 只能使用 NetWork BufferPool 中的一部分。此时，Task A 已经申请不到任何的 Buffer 了，Task A 的 Record Writer 输出就被 wait，Task A 不再生产数据。如下图所示，Producer 和 Consumer 端所有的通道都被阻塞。</p>
+<img src="/images/flink/000036.png" alt="截屏2021-05-23 下午7.54.40" style="zoom:50%;" />
+
+<p>当下游 Task B 持续消费，Task B 的 InputChannel 中部分的 Buffer 可以被回收，所有被阻塞的数据通道会被一个个打开，之后 Task A 又可以开始正常的生产数据了。通过上述的整个流程，来动态反馈，保障各个 Buffer 都不会因为数据太多导致内存溢出。</p>
+<h3 id="4-2-跨-Task-且-Task-在同一个-TaskManager"><a href="#4-2-跨-Task-且-Task-在同一个-TaskManager" class="headerlink" title="4.2. 跨 Task 且 Task 在同一个 TaskManager"></a>4.2. 跨 Task 且 Task 在同一个 TaskManager</h3><p>一般情况下，一个 TaskManager 内会运行多个 slot，每个 slot 内运行一个 SubTask。所以，Task 之间的数据传输可能存在上游的 Task A 和下游的 Task B 运行在同一个 TaskManager 的情况，整个数据传输流程与上述类似，只不过由于 Task A 和 B 运行在同一个 JVM，所以不需要网络传输的环节，Task A 会将 Buffer 直接交给 Task B，一旦 Task B 消费了该 Buffer，则该 Buffer 就会被 Task A ResultSubPartition 对应的 LocalBufferPool 回收。</p>
+<p>如果 Task B 消费的速度一直比 Task A 生产的速度慢，持续下去就会导致 Task A 申请不到 LocalBufferPool，最终造成 Task A 生产数据被阻塞。当下游 Task B 消费速度恢复后，Task A 就可以回收 ResultSubPartition 对应的已经被 Task B 消费的 Buffer，Task A 又可以正常的开始生产数据了，通过上述流程，来实现跨 Task 且 Task 在同一个 TaskManager 内的动态反馈。</p>
+<h3 id="4-3-同一-TaskManager"><a href="#4-3-同一-TaskManager" class="headerlink" title="4.3. 同一 TaskManager"></a>4.3. 同一 TaskManager</h3><p>假如 Task A 的下游所有 Buffer 都占满了，那么 Task A 的 Record Writer 会被 block，Task A 的 Record Reader、Operator、Record Writer 都属于同一个线程，Task A 的 Record Reader 也会被 block。</p>
+<ol>
+<li>Task A 是 Source Task，那么 Task A 就不会从外部的 Source 端读取数据，</li>
+<li>Task A 有上游的 Task，那么 Task A 就不会从自身的 InputChannel 中读取数据，然后又通过第一种动态反馈策略，将 Task A 的压力反馈给 Task A 的上游 Task。</li>
+</ol>
+<p>当 Task A 的下游消费恢复后，ResultSubPartition 就可以申请到 Buffer，Task A 的 Record Writer 就不会被 block，Task A 就可以恢复正常的消费。通过上述流程，来实现 Task 内部的动态反馈。</p>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5. 总结"></a>5. 总结</h2><p>Flink 1.5 之前并没有特殊的机制来处理反压，因为 Flink 中的数据传输相当于已经提供了应对反压的机制。</p>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

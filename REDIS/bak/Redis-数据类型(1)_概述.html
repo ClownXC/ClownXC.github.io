@@ -1,0 +1,741 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分类: Redis | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Redis 是一种基于内存的数据库，并且提供一定的持久化功能，它是一种键值（key-value）数据库，使用 key 作为索引找到当前缓存的数据，并且返回给程序调用者。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="周晓晨">
+<meta property="og:url" content="http://joccer.gitee.io/REDIS/bak/Redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B(1)_%E6%A6%82%E8%BF%B0.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Redis 是一种基于内存的数据库，并且提供一定的持久化功能，它是一种键值（key-value）数据库，使用 key 作为索引找到当前缓存的数据，并且返回给程序调用者。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-07-12T15:58:21.000Z">
+<meta property="article:modified_time" content="2021-05-24T15:44:54.024Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/REDIS/bak/Redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B(1)_%E6%A6%82%E8%BF%B0"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-05-24 23:44:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">Redis</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><p>Redis 是一种基于内存的数据库，并且提供一定的持久化功能，它是一种键值（key-value）数据库，使用 key 作为索引找到当前缓存的数据，并且返回给程序调用者。</p>
+<a id="more"></a>
+
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>目前 Redis 支持 6 种数据类型：字符串（String）、列表（List）、集合（set）、哈希结构（hash）、有序集合（zset）和基数（HyperLogLog）</p>
+<table>
+<thead>
+<tr>
+<th align="center">数据类型</th>
+<th align="center">数据类型存储的值</th>
+<th align="center">说 明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>STRING</strong>（字符串）</td>
+<td align="center">可以是保存字符串、整数和浮点数</td>
+<td align="center">可以对字符串进行操作，比如增加字符或者求子串：如果是整数或者浮点数，可以实现计算，比如自增等</td>
+</tr>
+<tr>
+<td align="center"><strong>LIST</strong>（列表）</td>
+<td align="center">它是一个链表，它的每一个节点都包含一个字符串</td>
+<td align="center">Redis 支持从链表的两端插入或者弹出节点，或者通过偏移对它进行裁剪；还可以读取一个或者多个节点，根据条件删除或者查找节点等</td>
+</tr>
+<tr>
+<td align="center"><strong>SET</strong>（集合）</td>
+<td align="center">它是一个收集器，但是是无序的，在它里而每一个元素都是一个字符串，而且是独一无二，各不相同的</td>
+<td align="center">可以新增、读取、删除单个元素：检测一个元素是否在集合中；计算它和其他集合的交集、并集和差集等；随机从集合中读取元素</td>
+</tr>
+<tr>
+<td align="center"><strong>HASH</strong>（哈希表）</td>
+<td align="center">它类似于 Java 语言中的 Map，是一个键值对应的无序列表</td>
+<td align="center">可以増、删、査、改单个键值对，也可以获取所有的键值对</td>
+</tr>
+<tr>
+<td align="center"><strong>ZSET</strong>（有序集合）</td>
+<td align="center">它是一个有序的集合，可以包含字符 串、整数、浮点数、分值（score），元素 的排序是依据分值的大小来决定的</td>
+<td align="center">可以增、删、査、改元素，根据分值的范围或者成员 來获取对应的元索</td>
+</tr>
+<tr>
+<td align="center"><strong>HyperLogLog</strong>（基数）</td>
+<td align="center">它的作用是计算重复的值，以确定存储的数量</td>
+<td align="center">只提供基数的运算，不提供返回的功能</td>
+</tr>
+</tbody></table>
+<h1 id="2-String"><a href="#2-String" class="headerlink" title="2. String"></a>2. <strong>String</strong></h1><h2 id="2-1-基本运算"><a href="#2-1-基本运算" class="headerlink" title="2.1. 基本运算"></a>2.1. 基本运算</h2><table>
+<thead>
+<tr>
+<th>命 令</th>
+<th>说 明</th>
+<th>备 注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>set</strong> key value</td>
+<td>设置键值对</td>
+<td>最常用的写入命令</td>
+</tr>
+<tr>
+<td><strong>get</strong> key</td>
+<td>通过键获取值</td>
+<td>最常用的读取命令</td>
+</tr>
+<tr>
+<td><strong>del</strong> key</td>
+<td>通过 key，删除键值对</td>
+<td>删除命令，返冋删除数，注意，它是个通用的命令，换句话说在其他数据结构中，也可以使用它</td>
+</tr>
+<tr>
+<td><strong>strlen</strong> key</td>
+<td>求 key 指向字符串的长度</td>
+<td>返回长度</td>
+</tr>
+<tr>
+<td><strong>getset</strong> key value</td>
+<td>修改原来 key 的对应值，并将旧值返回</td>
+<td>如果原来值为空，则返回为空，并设置新值</td>
+</tr>
+<tr>
+<td><strong>getrange</strong> key start end</td>
+<td>获取子串</td>
+<td>记字符串的长度为 len，把字符串看作一个数组，而 Redis 是以 0 开始计数的，所以 start 和 end 的取值范围 为 0 到 len-1</td>
+</tr>
+<tr>
+<td><strong>append</strong> key value</td>
+<td>将新的字符串 value，加入到原来 key 指向的字符串末</td>
+<td>返回 key 指向新字符串的长度</td>
+</tr>
+</tbody></table>
+<p>Redis 除了这些之外还提供了对整数和浮点型数字的功能。如果字符串是数字（整数或者浮点数），那么 Redis 还能支持简单的运算。不过它的运算能力比较弱，目前版本只能支持简单的加减法运算</p>
+<table>
+<thead>
+<tr>
+<th>incr key</th>
+<th>在原字段上加 1</th>
+<th>只能对整数操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>incrby</strong> key increment</td>
+<td>在原字段上加上整数（increment）</td>
+<td>只能对整数操作</td>
+</tr>
+<tr>
+<td><strong>decr</strong> key</td>
+<td>在原字段上减 1</td>
+<td>只能对整数操作</td>
+</tr>
+<tr>
+<td><strong>decrby</strong> key decrement</td>
+<td>在原字段上减去整数（decrement）</td>
+<td>只能对整数操作</td>
+</tr>
+<tr>
+<td><strong>incrbyfloat</strong> keyincrement</td>
+<td>在原字段上加上浮点数（increment）</td>
+<td>可以操作浮点数或者整数</td>
+</tr>
+</tbody></table>
+<h2 id="2-2-应用场景"><a href="#2-2-应用场景" class="headerlink" title="2.2. 应用场景"></a>2.2. 应用场景</h2><h3 id="2-2-1-计数功能"><a href="#2-2-1-计数功能" class="headerlink" title="2.2.1. 计数功能"></a>2.2.1. 计数功能</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">incr article:001</span><br><span class="line">get article:001</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="/images/redis/0009000.png" alt="截屏2021-03-17 下午5.40.19" style="zoom:50%;" />
+
+<h3 id="2-2-2-单机或分布式下的标识号"><a href="#2-2-2-单机或分布式下的标识号" class="headerlink" title="2.2.2. 单机或分布式下的标识号"></a>2.2.2. 单机或分布式下的标识号</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">incrby serialNo 1000</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-3-集群环境下的-session-共享"><a href="#2-2-3-集群环境下的-session-共享" class="headerlink" title="2.2.3. 集群环境下的 session 共享"></a>2.2.3. 集群环境下的 session 共享</h3><h2 id="LIST"><a href="#LIST" class="headerlink" title="LIST"></a><strong>LIST</strong></h2><p>链表结构是 Redis 中一个常用的结构，它可以存储多个字符串，而且它是有序的，能够存储 2<sup>32</sup>-1 个节点</p>
+<p>Redis 链表是双向的，因此即可以从左到右，也可以从右到左遍历它存储的节点，</p>
+<p>由于是双向链表，所以只能够从左到右，或者从右到左地访问和操作链表里面的数据节点。但是使用链表结构就意味着读性能的丧失，所以要在大量数据中找到一个节点的操作性能是不佳的，因为链表只能从一个方向中去遍历所要节点。</p>
+<p>比如从查找节点 10000 开始查询，它需要按照节点 1、节点 2、节点 3……直至节点 10 000，这样的顺序查找，然后把一个个节点和你给出的值比对，才能确定节点所在。如果这个链表很大，如有上百万个节点，可能需要遍历几十万次才能找到所需要的节点，显然查找性能是不佳的。</p>
+<p>而链表结构的优势在于插入和删除的便利，因为链表的数据节点是分配在不同的内存区域的，并不连续，只是根据上一个节点保存下一个节点的顺序来索引而已，无需移动元素。</p>
+<h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><table>
+<thead>
+<tr>
+<th>命  令</th>
+<th>说  明</th>
+<th>备  注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>lpush</strong> key node1 [node2.]…..</td>
+<td>把节点 node1 加入到链表最左边</td>
+<td>如果是 node1、node2 …nodeN 这样加入， 那么链表开头从左到右的顺序是 noden…node2、node1</td>
+</tr>
+<tr>
+<td><strong>rpush</strong> key node1[node2]……</td>
+<td>把节点 node1 加入到链表的最右边</td>
+<td>如果是 node1、node2….noden 这样加 入，那么链表结尾从左到右的顺序是 node1、node2,node3…noden</td>
+</tr>
+<tr>
+<td><strong>lindex</strong> key index</td>
+<td>读取下标为 index 的节点</td>
+<td>返回节点字符串，从 0 开始算</td>
+</tr>
+<tr>
+<td><strong>llen</strong> key</td>
+<td>求链表的长度</td>
+<td>返回链表节点数</td>
+</tr>
+<tr>
+<td><strong>lpop</strong> key</td>
+<td>删除左边第一个节点，并将其返回</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>rpop</strong> key</td>
+<td>删除右边第一个节点，并将其返回</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>linsert</strong> key <strong>before|after</strong> pivot node</td>
+<td>插入一个节点 node，并且可以指定在值为pivot 的节点的前面（before）或者后面（after)）</td>
+<td>如果 list 不存在，则报错；如果没有值为对应 pivot 的，也会插入失败返回 -1</td>
+</tr>
+<tr>
+<td><strong>lpushx</strong> list node</td>
+<td>如果存在 key 为 list 的链表，则插入节点 node, 并且作为从左到右的第一个节点</td>
+<td>如果 list 不存在，则失败</td>
+</tr>
+<tr>
+<td><strong>rpushx</strong> list node</td>
+<td>如果存在 key 为 list 的链表，则插入节点 node，并且作为从左到右的最后个节点</td>
+<td>如果 list 不存在，则失败</td>
+</tr>
+<tr>
+<td><strong>lrange</strong> list start end</td>
+<td>获取链表 list 从 start 下标到 end 下标的节点值</td>
+<td>包含 start 和 end 下标的值</td>
+</tr>
+<tr>
+<td><strong>lrem</strong> list count value</td>
+<td>如果 count 为 0，则删除所有值等于 value 的节 点：如果 count 不是 0，则先对 count 取绝对值，假设记为 abs，然后从左到右删除不大于 abs 个等于 value 的节点</td>
+<td>注意，count 为整数，如果是负数，则 Redis 会先求取其绝对值，然后传递到后台操作</td>
+</tr>
+<tr>
+<td><strong>lset</strong> key index node</td>
+<td>设置列表下标为 index 的节点的值为 node</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>ltrim</strong> key start stop</td>
+<td>修剪链表，只保留从 start 到 stop 的区间的节点，其余的都删除掉</td>
+<td>包含 start 和 end 的下标的节点会保留</td>
+</tr>
+</tbody></table>
+<p>对于大量数据操作的时候，我们需要考虑插入和删除内容的大小，因为这将是十分消耗性能的命令，会导致 Redis 服务器的卡顿。对于不允许卡顿的一些服务器，可以进行分批次操作，以避免出现卡顿。</p>
+<p>需要指出的是，上面操作链表的命令都是进程不安全的，因为当我们操作这些命令的时候，其他 Redis 的客户端也可能操作同一个链表，这样就会造成并发数据安全和一致性的问题，尤其是当你操作一个数据量不小的链表结构时，常常会遇到这样的问题。</p>
+<p>为了克服这些问题，Redis 提供了链表的阻塞命令，它们在运行的时候，会给链表加锁，以保证操作链表的命令安全性</p>
+<table>
+<thead>
+<tr>
+<th>命  令</th>
+<th>说  明</th>
+<th>备  注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>blpop</strong> key timeout</td>
+<td>移出并获取列表的第一个元索，如果列表没有元素会阻塞列表直到等待超时或发现可弹出元索为止</td>
+<td>相对于 lpop 命令，它的操作是进程安全的</td>
+</tr>
+<tr>
+<td><strong>brpop</strong> key timeout</td>
+<td>移出并获取列表的最后一个元素，如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止</td>
+<td>相对于 rpop 命令，它的操作是进程安全的</td>
+</tr>
+<tr>
+<td><strong>rpoplpush</strong> key src dest</td>
+<td>按从左到右的顺序，将一个链表的最后一个元素移除，并插入到目标链表最左边</td>
+<td>不能设置超时时间</td>
+</tr>
+<tr>
+<td><strong>brpoplpush</strong> key src dest timeout</td>
+<td>按从左到右的顺序，将一个链表的最后一个元素移除，并插入到目标链表最左边，并可以设置超时时间</td>
+<td>可设置超时时间</td>
+</tr>
+</tbody></table>
+<p>当使用这些命令时，Redis 就会对对应的链表加锁，加锁的结果就是其他的进程不能再读取或者写入该链表，只能等待命令结束。加锁的好处可以保证在多线程并发环境中数据的一致性，保证一些重要数据的一致性，比如账户的金额、商品的数量。</p>
+<p>不过在保证这些的同时也要付出其他线程等待、线程环境切换等代价，这将使得系统的并发能力下降</p>
+<h2 id="HASH"><a href="#HASH" class="headerlink" title="HASH"></a>HASH</h2><p>Redis 中哈希结构就如同 Java 的 map 一样，一个对象里面有许多键值对，它是特别适合存储对象的，如果内存足够大，那么一个 Redis 的 hash 结构可以存储 2 的 32 次方减 1 个键值对（40 多亿）。</p>
+<p>一般而言，不会使用到那么大的一个键值对，所以我们认为 Redis 可以存储很多的键值对。在 Redis 中，hash 是一个 String 类型的 field 和 value 的映射表，因此我们存储的数据实际在 Redis 内存中都是一个个字符串而已。</p>
+<table>
+<thead>
+<tr>
+<th>命  令</th>
+<th>说  明</th>
+<th>备  注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>hdel</strong> key field1[field2……]</td>
+<td>删除 hash 结构中的某个（些）字段</td>
+<td>可以进行多个字段的删除</td>
+</tr>
+<tr>
+<td><strong>hexists</strong> key field</td>
+<td>判断 hash 结构中是否存在 field 字段</td>
+<td>存在返回 1，否则返回 0</td>
+</tr>
+<tr>
+<td><strong>hgetall</strong> key</td>
+<td>获取所有 hash 结构中的键值</td>
+<td>返回键和值</td>
+</tr>
+<tr>
+<td><strong>hincrby</strong> key field increment</td>
+<td>指定给 hash 结构中的某一字段加上一个整数</td>
+<td>要求该字段也是整数字符串</td>
+</tr>
+<tr>
+<td><strong>hincrbyfloat</strong> key field increment</td>
+<td>指定给 hash 结构中的某一字段加上一个浮点数</td>
+<td>要求该字段是数字型字符串</td>
+</tr>
+<tr>
+<td><strong>hkeys</strong> key</td>
+<td>返回 hash 中所有的键</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>hlen</strong> key</td>
+<td>返回 hash 中键值对的数量</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>hmget</strong> key field1[field2……]</td>
+<td>返回 hash 中指定的键的值，可以是多个</td>
+<td>依次返回值</td>
+</tr>
+<tr>
+<td><strong>hmset</strong> key field1 value1 [field2 field2……]</td>
+<td>hash 结构设置多个键值对</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>hset</strong> key filed value</td>
+<td>在 hash 结构中设置键值对</td>
+<td>单个设值</td>
+</tr>
+<tr>
+<td><strong>hsetnx</strong> key field value</td>
+<td>当 hash 结构中不存在对应的键，才设置值</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>hvals</strong> key</td>
+<td>获取 hash 结构中所有的值</td>
+<td>——</td>
+</tr>
+</tbody></table>
+<p>哈希结构的大小，如果哈希结构是个很大的键值对，那么使用它要十分注意，尤其是关于 hkeys、hgetall、hvals 等返回所有哈希结构数据的命令，会造成大量数据的读取。这需要考虑性能和读取数据大小对 JVM 内存的影响。</p>
+<p>对于数字的操作命令 hincrby 而言，要求存储的也是整数型的字符串，对于 hincrbyfloat 而言，则要求使用浮点数或者整数，否则命令会失败。</p>
+<h2 id="3-2-应用场景"><a href="#3-2-应用场景" class="headerlink" title="3.2. 应用场景"></a>3.2. 应用场景</h2><h3 id="3-2-1-电商网站购物车设计与实现"><a href="#3-2-1-电商网站购物车设计与实现" class="headerlink" title="3.2.1. 电商网站购物车设计与实现"></a>3.2.1. 电商网站购物车设计与实现</h3><p>每个商品入库的时候即会建立他的静态标签列表如，品牌，尺寸，处理器，内存</p>
+<img src="/images/redis/08080.png" alt="截屏2021-03-18 上午9.41.37" style="zoom:50%;" />
+
+<img src="/images/redis/8888.png" alt="截屏2021-03-18 上午9.43.52" style="zoom:50%;" />
+
+<img src="/images/redis/809.png" alt="截屏2021-03-18 上午9.44.32" style="zoom:50%;" />
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; hmset 001 g01 100 g02 200</span><br><span class="line">127.0.0.1:6379&gt; hmset 002 g02 1 g04 7 g05 100</span><br><span class="line">127.0.0.1:6379&gt; hset 001 g03 5</span><br><span class="line">127.0.0.1:6379&gt; hgetall 001</span><br><span class="line">127.0.0.1:6379&gt; hdel 001 g01</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-2-单机或分布式下的标识号"><a href="#3-2-2-单机或分布式下的标识号" class="headerlink" title="3.2.2. 单机或分布式下的标识号"></a>3.2.2. 单机或分布式下的标识号</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">incrby serialNo 1000</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="SET"><a href="#SET" class="headerlink" title="SET"></a>SET</h2><p>Redis 的集合不是一个线性结构，而是一个哈希表结构，它的内部会根据 hash 分子来存储和查找数据，理论上一个集合可以存储 2<sup>32</sup>-1 个节点个元素，因为采用哈希表结构，所以对于 Redis 集合的插入、删除和查找的复杂度都是 0（1）</p>
+<ul>
+<li>对于集合而言，它的每一个元素都是不能重复的，当插入相同记录的时候都会失败。</li>
+<li>集合是无序的。</li>
+<li>集合的每一个元素都是 String [数据结构]</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>命  令</td>
+<td>说  明</td>
+<td>备  注</td>
+</tr>
+<tr>
+<td><strong>sadd</strong> key member1 [member2 member3……]</td>
+<td>给键为 key 的集合増加成员</td>
+<td>可以同时増加多个</td>
+</tr>
+<tr>
+<td><strong>scard</strong> key</td>
+<td>统计键为 key 的集合成员数</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>sdiff</strong> key1 [key2]</td>
+<td>找出两个集合的差集</td>
+<td>参数如果是单key，那么 Redis 就返回这个 key 的所有元素</td>
+</tr>
+<tr>
+<td><strong>sdiffstore</strong> des key1 [key2]</td>
+<td>先按 sdiff 命令的规则，找出 key1 和 key2 两个集合的差集，然后将其保存到 des 集合中。</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>sinter</strong> key1 [key2]</td>
+<td>求 key1 和 key2 两个集合的交集。</td>
+<td>参数如果是单 key，那么 Redis 就返冋这个 key 的所有元素</td>
+</tr>
+<tr>
+<td><strong>sinterstore</strong> des key1 key2</td>
+<td>先按 sinter 命令的规则，找出 key1 和 key2 两个集合的交集，然后保存到 des 中</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>sismember</strong> key member</td>
+<td>判断 member 是否键为 key 的集合的成员</td>
+<td>如果是返回 1，否则返回 0</td>
+</tr>
+<tr>
+<td><strong>smembers</strong> key</td>
+<td>返回集合所有成员</td>
+<td>如果数据量大，需要考虑迭代遍历的问题</td>
+</tr>
+<tr>
+<td><strong>smove</strong> src des member</td>
+<td>将成员 member 从集合 src 迁移到集合 des 中</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>spop</strong> key</td>
+<td>随机弹出集合的一个元素</td>
+<td>注意其随机性，因为集合是无序的</td>
+</tr>
+<tr>
+<td><strong>srandmember</strong> key [count]</td>
+<td>随机返回集合中一个或者多个元素，count 为限制返回总数，如果 count 为负数，则先求其绝对值</td>
+<td>count 为整数，如果不填默认为 1，如果 count 大于等于集合总数，则返回整个集合</td>
+</tr>
+<tr>
+<td><strong>srem</strong> key member1[member2……]</td>
+<td>移除集合中的元素，可以是多个元素</td>
+<td>对于很大的集合可以通过它删除部分元素，避免删除大量数据引发 Redis 停顿</td>
+</tr>
+<tr>
+<td><strong>sunion</strong> key1 [key2]</td>
+<td>求两个集合的并集</td>
+<td>参数如果是单 key，那么 Redis 就返回这个 key 的所有元素</td>
+</tr>
+<tr>
+<td><strong>sunionstore</strong> des key1 key2</td>
+<td>先执行 sunion 命令求出并集，然后保存到键为 des 的集合中</td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="4-2-应用场景"><a href="#4-2-应用场景" class="headerlink" title="4.2. 应用场景"></a>4.2. 应用场景</h2><h3 id="4-2-1-电商商品筛选-set"><a href="#4-2-1-电商商品筛选-set" class="headerlink" title="4.2.1. 电商商品筛选(set)"></a>4.2.1. 电商商品筛选(set)</h3><p>每个商品入库的时候即会建立他的静态标签列表如，品牌，尺寸，处理器，内存</p>
+<h3 id="4-2-2-单机或分布式下的标识号"><a href="#4-2-2-单机或分布式下的标识号" class="headerlink" title="4.2.2. 单机或分布式下的标识号"></a>4.2.2. 单机或分布式下的标识号</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">incrby serialNo 1000</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-3-集群环境下的-session-共享"><a href="#4-2-3-集群环境下的-session-共享" class="headerlink" title="4.2.3. 集群环境下的 session 共享"></a>4.2.3. 集群环境下的 session 共享</h3><h2 id="ZSET"><a href="#ZSET" class="headerlink" title="ZSET"></a>ZSET</h2><p>有序集合和集合类似，只是说它是有序的，和无序集合的主要区别在于每一个元素除了值之外，它还会多一个分数。分数是一个浮点数，在 Java 中是使用双精度表示的，根据分数，Redis 就可以支持对分数从小到大或者从大到小的排序。</p>
+<p>这里和无序集合一样，对于每一个元素都是唯一的，但是对于不同元素而言，它的分数可以一样。元素也是 String 数据类型，也是一种基于 hash 的存储结构。</p>
+<p>集合是通过哈希表实现的，所以添加、删除、查找的复杂度都是 0（1）。集合中最大的成员数为 2<sup>32</sup>-1</p>
+<table>
+<thead>
+<tr>
+<th>命  令</th>
+<th>说  明</th>
+<th>备  注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>zadd</strong> key score1 value1 [score2 value2……]</td>
+<td>向有序集合的 key，增加一个或者多个成员</td>
+<td>如果不存在对应的 key，则创建键为 key 的有序集合</td>
+</tr>
+<tr>
+<td><strong>zcard</strong> key</td>
+<td>获取有序集合的成员数</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>zcount</strong> key min max</td>
+<td>根据分数返回对应的成员列表</td>
+<td>min 为最小值，max 为最大值，默认为包含 min 和 max 值，采用数学区间表示的方法，如果需要不包含，则在分数前面加入“(”，注意不支持“[”表示</td>
+</tr>
+<tr>
+<td><strong>zincrby</strong> key increment member</td>
+<td>给有序集合成员值为 member 的分数增加 increment</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>zinterstore</strong> desKey numkeys key1 [key2 key3……]</td>
+<td>求多个有序集合的交集，并且将结果保存到 desKey 中</td>
+<td>numkeys 是一个整数，表示多少个有序集合</td>
+</tr>
+<tr>
+<td><strong>zrange</strong> key start stop [withscores]</td>
+<td>按照分值的大小（从小到大）返回成员，加入 start 和 stop 参数可以截取某一段返回。如果输入可选项 withscores，则连同分数一起返回</td>
+<td>这里记集合最人长度为 len，则 Redis 会将集合排序后，形成一个从 0 到 len-1 的下标，然后根据 start 和 stop 控制的下标（包含 start 和 stop）返回</td>
+</tr>
+<tr>
+<td><strong>zrank</strong> key member</td>
+<td>按从小到大求有序集合的排行</td>
+<td>排名第一的为 0，第二的为 1……</td>
+</tr>
+<tr>
+<td><strong>zrangebylex</strong> key min max [limit offset count]</td>
+<td>根据值的大小，从小到大排序，min 为最小值，max 为最大值；limit 选项可选，当 Redis 求出范围集合后，会生产下标 0 到 n，然后根据偏移量 offset 和限定返回数 count，返回对应的成员</td>
+<td>这里范围为 key 的成员值，Redis 借助数学区间的表示方法，“[”表示包含该值，“(”表示不包含该值</td>
+</tr>
+<tr>
+<td><strong>zrangebyscore</strong> key min max [withscores] [limit offset count]</td>
+<td>根据分数大小，从小到大求取范围，选项 withscores 和 limit 请参考 zrange 命令和 zrangebylex 说明</td>
+<td>根据分析求取集合的范围。这里默认包含 min 和 max，如果不想包含，则在参数前加入“(”， 注意不支持“[”表示</td>
+</tr>
+<tr>
+<td><strong>zrevrank</strong> key member</td>
+<td>按从大到小的顺序，求元素的排行</td>
+<td>排名第一位 0，第二位 1……</td>
+</tr>
+<tr>
+<td><strong>zscore</strong> key member</td>
+<td>返回成员的分数值</td>
+<td>返回成员的分数</td>
+</tr>
+<tr>
+<td><strong>zunionstore</strong> desKey numKeys key1 [key2 key3 key4……]</td>
+<td>求多个有序集合的并集，其中 numKeys 是有序集合的个数</td>
+<td>——</td>
+</tr>
+</tbody></table>
+<h2 id="5-2-应用场景"><a href="#5-2-应用场景" class="headerlink" title="5.2. 应用场景"></a>5.2. 应用场景</h2><p>redis 的 zset 天生是用来做排行榜的、好友列表, 去重, 历史记录等业务需求</p>
+<h3 id="5-2-1-排行版-zset"><a href="#5-2-1-排行版-zset" class="headerlink" title="5.2.1. 排行版(zset)"></a>5.2.1. 排行版(zset)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// user1 的用户分数为 10 </span><br><span class="line">zadd ranking 10 user1 </span><br><span class="line">zadd ranking 20 user2 </span><br><span class="line">// 取分数最高的3个用户</span><br><span class="line">zrevrange ranking 0 2 withscores</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h1 id="HyperLogLog"><a href="#HyperLogLog" class="headerlink" title="HyperLogLog"></a>HyperLogLog</h1><p>Redis 的基数统计，这个结构可以非常省内存的去统计各种计数，比如注册 IP 数、每日访问 IP 数、页面实时 UV）、在线用户数等。基数的作用是评估大约需要准备多少个存储单元去存储数据，但是基数的算法一般会存在一定的误差，一般是可控的。供不精确的去重计数功能，比较适合用来做大规模数据的去重统计，例如统计 UV</p>
+<p>基数是一种算法。如一本英文著作由数百万个单词组成，你的内存却不足以存储它们，那么我们先分析一下业务。</p>
+<p>英文单词本身是有限的，在这本书的几百万个单词中有许许多多重复单词，扣去重复的单词，这本书中也就是几千到一万多个单词而已，那么内存就足够存储它们了。</p>
+<p>比如数字集合 {1,2,5,7,9,1,5,9} 的基数集合为 {1,2,5,7,9} 那么基数（不重复元素）就是 5</p>
+<table>
+<thead>
+<tr>
+<th>命  令</th>
+<th>说  明</th>
+<th>备  注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>pfadd</strong> key element</td>
+<td>添加指定元素到 HyperLogLog 中</td>
+<td>如果已经存储元索，则返回为 0，添加失败</td>
+</tr>
+<tr>
+<td><strong>pfcount</strong> key</td>
+<td>返回 HyperLogLog 的基数值</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>pfmerge</strong> desKey key1 [key2 key3…]</td>
+<td>合并多个 HyperLogLog，并将其保存在 desKey 中</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h2 id="BitMaps"><a href="#BitMaps" class="headerlink" title="BitMaps"></a>BitMaps</h2><p>通过一个 bit 位来表示某个元素对应的值或者状态,其中的 key 就是对应元素本身。我们知道 8 个 bit 可以组成一个 Byte，所以 bitmap 本身会极大的节省储存空间。</p>
+<h3 id="基本操作-1"><a href="#基本操作-1" class="headerlink" title="基本操作"></a>基本操作</h3><ul>
+<li><strong>setbit</strong> bits </li>
+<li><strong>getbit</strong> bits</li>
+</ul>
+<h3 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h3><h4 id="用户签到"><a href="#用户签到" class="headerlink" title="用户签到"></a>用户签到</h4><p>很多网站都提供了签到功能(这里不考虑数据落地事宜)，并且需要展示最近一个月的签到情况，使用bitmap<br><strong>根据日期 offset =hash % 365 ； key = 年份#用户id</strong></p>
+<h4 id="用户签到-1"><a href="#用户签到-1" class="headerlink" title="用户签到"></a>用户签到</h4><p>使用时间作为 cacheKey，然后用户 ID 为 offset，如果当日活跃过就设置为 1<br>那么我该如果计算某几天/月/年的活跃用户呢(暂且约定，统计时间内只有有一天在线就称为活跃)<br>命令 <code>BITOP operation destkey key [key ...]</code><br>说明：对一个或多个保存二进制位的字符串 key 进行位元操作，并将结果保存到 destkey 上。<br>说明：BITOP 命令支持 AND 、 OR 、 NOT 、 XOR 这四种操作中的任意一种参数</p>
+<p>20190216 活跃用户 【1，2】<br>20190217 活跃用户 【1】<br>统计20190216~20190217 总活跃用户数: 1</p>
+<h3 id="用户在线状态"><a href="#用户在线状态" class="headerlink" title="用户在线状态"></a><strong>用户在线状态</strong></h3><p>查询当前用户是否在线的接口。<br>使用 bitmap 是一个节约空间效率又高的一种方法，只需要一个 key，然后用户 ID 为 offset，如果在线就设置为1，<br>不在线就设置为0，和上面的场景一样，5000W用户只需要 6MB 的空间</p>
+<h2 id="GEO"><a href="#GEO" class="headerlink" title="GEO"></a>GEO</h2><p>Redis 的 GEO 特性可以将用户给定的地理位置信息储存起来， 并对这些信息进行操作。</p>
+<h2 id="Streams"><a href="#Streams" class="headerlink" title="Streams"></a>Streams</h2><p>Stream 是 Redis 5.0 版本引入的一个新的数据类型，它以更抽象的方式模拟日志数据结构，但日志仍然是完整的：就像一个日志文件，通常实现为以只附加模式打开的文件，Redis流主要是一个仅附加数据结构。至少从概念上来讲，因为Redis流是一种在内存表示的抽象数据类型，他们实现了更加强大的操作，以此来克服日志文件本身的限制。</p>
+<p>Stream是Redis的数据类型中最复杂的，尽管数据类型本身非常简单，它实现了额外的非强制性的特性：提供了一组允许消费者以阻塞的方式等待生产者向Stream中发送的新消息，此外还有一个名为<strong>消费者组</strong>的概念。</p>
+<p>消费者组最早是由名为Kafka（TM）的流行消息系统引入的。Redis用完全不同的术语重新实现了一个相似的概念，但目标是相同的：允许一组客户端相互配合来消费同一个Stream的不同部分的消息。</p>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

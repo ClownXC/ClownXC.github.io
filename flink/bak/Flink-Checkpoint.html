@@ -1,0 +1,326 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分类: Flink | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="Checkpoint 在 Flink 中是一个非常重要的 Feature，Checkpoint 使 Flink 的状态具有良好的容错性，通过 Checkpoint 机制，Flink 可以对作业的状态和计算位置进行恢复。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Flink_Checkpoint&amp;Savepoint">
+<meta property="og:url" content="http://joccer.gitee.io/flink/bak/Flink-Checkpoint.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="Checkpoint 在 Flink 中是一个非常重要的 Feature，Checkpoint 使 Flink 的状态具有良好的容错性，通过 Checkpoint 机制，Flink 可以对作业的状态和计算位置进行恢复。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2019-12-28T12:29:40.000Z">
+<meta property="article:modified_time" content="2021-05-24T02:36:47.471Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/flink/bak/Flink-Checkpoint"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-05-24 10:36:47'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">Flink_Checkpoint&amp;Savepoint</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><p>Checkpoint 在 Flink 中是一个非常重要的 Feature，Checkpoint 使 Flink 的状态具有良好的容错性，通过 Checkpoint 机制，Flink 可以对作业的状态和计算位置进行恢复。</p>
+<a id="more"></a>
+
+<h2 id="1-Checkpoint-简介"><a href="#1-Checkpoint-简介" class="headerlink" title="1. Checkpoint 简介"></a>1. Checkpoint 简介</h2><p>为了保障的容错，Flink 需要对状态进行快照。Flink 可以从 Checkpoint 中恢复流的状态和位置，从而使得应用程序发生故障后能够得到与无故障执行相同的语义。</p>
+<p>Flink 的 Checkpoint 有以下先决条件：</p>
+<ul>
+<li><p><strong>需要具有持久性且支持重放一定时间范围内数据的数据源。</strong></p>
+<blockquote>
+<p>Flink 的容错机制决定了，当 Flink 任务失败后会自动从最近一次成功的 Checkpoint 处恢复任务，此时可能需要把任务失败前消费的部分数据再消费一遍，所以必须要求数据源支持重放。</p>
+</blockquote>
+</li>
+<li><p><strong>需要一个能保存状态的持久化存储介质</strong></p>
+<blockquote>
+<p>当 Flink 任务失败后，自动从 Checkpoint 处恢复，但是如果 Checkpoint 时保存的状态信息快照全丢了，那就会影响 Flink 任务的正常恢复。</p>
+</blockquote>
+</li>
+</ul>
+<p>Flink 中 Checkpoint 是默认关闭的，对于需要保障 At Least Once 和 Exactly Once 语义的任务，强烈建议开启 Checkpoint，对于丢一小部分数据不敏感的任务，可以不开启 Checkpoint</p>
+<hr>
+<h2 id="2-Checkpoint-使用"><a href="#2-Checkpoint-使用" class="headerlink" title="2. Checkpoint 使用"></a><strong>2. Checkpoint 使用</strong></h2><p>首先调用 StreamExecutionEnvironment 的方法 enableCheckpointing(n) 来开启 Checkpoint，参数 n 以毫秒为单位表示 Checkpoint 的时间间隔。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"><span class="comment">// 开启 Checkpoint，每 1000毫秒进行一次 Checkpoint</span></span><br><span class="line">env.enableCheckpointing(<span class="number">1000</span>);</span><br><span class="line"><span class="comment">// Checkpoint 语义设置为 EXACTLY_ONCE</span></span><br><span class="line">env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);</span><br><span class="line"><span class="comment">// CheckPoint 的超时时间</span></span><br><span class="line">env.getCheckpointConfig().setCheckpointTimeout(<span class="number">60000</span>);</span><br><span class="line"><span class="comment">// 同一时间，只允许 有 1 个 Checkpoint 在发生</span></span><br><span class="line">env.getCheckpointConfig().setMaxConcurrentCheckpoints(<span class="number">1</span>);</span><br><span class="line"><span class="comment">// 两次 Checkpoint 之间的最小时间间隔为 500 毫秒</span></span><br><span class="line">env.getCheckpointConfig().setMinPauseBetweenCheckpoints(<span class="number">500</span>);</span><br><span class="line"><span class="comment">// 当 Flink 任务取消时，保留外部保存的 CheckPoint 信息</span></span><br><span class="line">env.getCheckpointConfig().enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 当有较新的 Savepoint 时，作业也会从 Checkpoint 处恢复</span></span><br><span class="line">env.getCheckpointConfig().setPreferCheckpointForRecovery(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">// 作业最多允许 Checkpoint 失败 1 次（flink 1.9 开始支持）</span></span><br><span class="line">env.getCheckpointConfig().setTolerableCheckpointFailureNumber(<span class="number">1</span>);</span><br><span class="line"><span class="comment">// Checkpoint 失败后，整个 Flink 任务也会失败（flink 1.9 之前）</span></span><br><span class="line">env.getCheckpointConfig.setFailTasksOnCheckpointingErrors(<span class="keyword">true</span>)</span><br></pre></td></tr></table></figure>
+
+<p>以上 Checkpoint 相关的参数描述如下所示：</p>
+<ul>
+<li><p>Checkpoint 语义：EXACTLY<em>ONCE 或 AT</em>LEAST<em>ONCE，EXACTLY</em>ONCE 表示所有要消费的数据被恰好处理一次，即所有数据既不丢数据也不重复消费；AT<em>LEAST</em>ONCE 表示要消费的数据至少处理一次，可能会重复消费。</p>
+</li>
+<li><p>Checkpoint 超时时间：如果 Checkpoint 时间超过了设定的超时时间，则 Checkpoint 将会被终止。</p>
+</li>
+<li><p>同时进行的 Checkpoint 数量：默认情况下，当一个 Checkpoint 在进行时，JobManager 将不会触发下一个 Checkpoint，但 Flink 允许多个 Checkpoint 同时在发生。</p>
+</li>
+<li><p>两次 Checkpoint 之间的最小时间间隔：从上一次 Checkpoint 结束到下一次 Checkpoint 开始，中间的间隔时间。例如，env.enableCheckpointing(60000) 表示 1 分钟触发一次 Checkpoint，同时再设置两次 Checkpoint 之间的最小时间间隔为 30 秒，假如任务运行过程中一次 Checkpoint 就用了50s，那么等 Checkpoint 结束后，理论来讲再过 10s 就要开始下一次 Checkpoint 了，但是由于设置了最小时间间隔为30s，所以需要再过 30s 后，下次 Checkpoint 才开始。注：如果配置了该参数就决定了同时进行的 Checkpoint 数量只能为 1。</p>
+</li>
+<li><p>当任务被取消时，外部 Checkpoint 信息是否被清理：Checkpoint 在默认的情况下仅用于恢复运行失败的 Flink 任务，当任务手动取消时 Checkpoint 产生的状态信息并不保留。当然可以通过该配置来保留外部的 Checkpoint 状态信息，这些被保留的状态信息在作业手动取消时不会被清除，这样就可以使用该状态信息来恢复 Flink 任务，对于需要从状态恢复的任务强烈建议配置为外部 Checkpoint 状态信息不清理。可选择的配置项为：</p>
+<p>ExternalizedCheckpointCleanup.RETAIN<em>ON</em>CANCELLATION：当作业手动取消时，保留作业的 Checkpoint 状态信息。注意，这种情况下，需要手动清除该作业保留的 Checkpoint 状态信息，否则这些状态信息将永远保留在外部的持久化存储中。</p>
+<p>ExternalizedCheckpointCleanup.DELETE<em>ON</em>CANCELLATION：当作业取消时，Checkpoint 状态信息会被删除。仅当作业失败时，作业的 Checkpoint 才会被保留用于任务恢复。</p>
+</li>
+<li><p>任务失败，当有较新的 Savepoint 时，作业是否回退到 Checkpoint 进行恢复：默认情况下，当 Savepoint 比 Checkpoint 较新时，任务会从 Savepoint 处恢复。</p>
+</li>
+<li><p>作业可以容忍 Checkpoint 失败的次数：默认值为 0，表示不能接受 Checkpoint 失败。</p>
+</li>
+</ul>
+<h2 id="3-Savepoint-概述"><a href="#3-Savepoint-概述" class="headerlink" title="3. Savepoint 概述"></a>3. Savepoint 概述</h2><p>Savepoint 与 Checkpoint 类似，同样需要把状态信息存储到外部介质，当作业失败时，可以从外部存储中恢复。Savepoint 与 Checkpoint 的区别很多：</p>
+<table>
+<thead>
+<tr>
+<th align="left">Checkpoint</th>
+<th align="center">Savepoint</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">由 Flink 的 JobManager 定时自动触发并管 理</td>
+<td align="center">由用户手动触发并管理</td>
+</tr>
+<tr>
+<td align="left">主要用于任务发生故障时，为任务提供给自动恢复机制</td>
+<td align="center">主要用于升级 Flink 版本、修改任务的逻辑代码、调整算子的并行度，且必须手动恢复</td>
+</tr>
+<tr>
+<td align="left">当使用 RocksDBStateBackend 时，支持增量方式对状态信息进行快照</td>
+<td align="center">仅支持全量快照</td>
+</tr>
+<tr>
+<td align="left">Flink 任务停止后，Checkpoint 的状态快照信息默认被清除</td>
+<td align="center">一旦触发 Savepoint，状态信息就被持久化到外部存储，除非用户手动删除</td>
+</tr>
+<tr>
+<td align="left">Checkpoint 设计目标：轻量级且尽可能快地恢复任务</td>
+<td align="center">Savepoint 的生成和恢复成本会更高一些，Savepoint 更多地关注代码的可移植性和兼容任务的更改操作</td>
+</tr>
+</tbody></table>
+<p>除了上述描述外，Checkpoint 和 Savepoint 在当前的实现上基本相同。</p>
+<h2 id="4-Checkpoint-流程"><a href="#4-Checkpoint-流程" class="headerlink" title="4. Checkpoint 流程"></a>4. Checkpoint 流程</h2><p>Flink 任务 Checkpoint 的详细流程如下所示：</p>
+<ol>
+<li>JobManager 端的 CheckPointCoordinator 会定期向所有 SourceTask 发送 CheckPointTrigger，Source Task 会在数据流中安插 Checkpoint barrier</li>
+</ol>
+<img src="/images/flink/000090.png" alt="截屏2021-05-24 上午10.21.12" style="zoom:25%;" />
+
+<ol start="2">
+<li>当 task 收到上游所有实例的 barrier 后，向自己的下游继续传递 barrier，然后自身同步进行快照，并将自己的状态异步写入到持久化存储中</li>
+</ol>
+<ul>
+<li>如果是增量 Checkpoint，则只是把最新的一部分更新写入到外部持久化存储中</li>
+<li>为了下游尽快进行 Checkpoint，所以 task 会先发送 barrier 到下游，自身再同步进行快照</li>
+</ul>
+<img src="/images/flink/00087.png" alt="截屏2021-05-24 上午10.22.52" style="zoom:25%;" />
+
+<blockquote>
+<p>注：Task B 必须接收到上游 Task A 所有实例发送的 barrier 时，Task B 才能开始进行快照</p>
+</blockquote>
+<ol start="3">
+<li><p>当 task 将状态信息完成备份后，会将备份数据的地址(state handle)通知给 JobManager 的CheckPointCoordinator，如果 Checkpoint 的持续时长超过了 Checkpoint 设定的超时时间CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator 就会认为本次 Checkpoint 失败，会把这次 Checkpoint 产生的所有状态数据全部删除</p>
+</li>
+<li><p>如果 CheckPointCoordinator 收集完所有算子的 State Handle，CheckPointCoordinator 会把整个 StateHandle 封装成 completed Checkpoint Meta，写入到外部存储中，Checkpoint 结束</p>
+</li>
+</ol>
+<img src="/images/flink/00093.png" alt="截屏2021-05-24 上午10.24.22" style="zoom:25%;" />
+
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5. 总结"></a>5. 总结</h2><p>相比 Savepoint 而言，Checkpoint 的成本更低一些，但有些场景 Checkpoint 并不能完全满足需求。所以在使用过程中，如果能使用 Checkpoint 来解决优先使用 Checkpoint。当 Flink 任务中的一些依赖组件需要升级重启时，例如 hdfs、Kafka、yarn 升级或者 Flink 任务的 Sink 端对应的 MySQL、Redis 由于某些原因需要重启时，Flink 任务在这段时间也需要重启。但是由于 Flink 任务的代码并没有修改，所以 Flink 任务启动时可以从 Checkpoint 处恢复任务，此时必须配置取消 Flink 任务时保留外部存储的 Checkpoint 状态信息。从 Checkpoint 处恢复任务的命令如下所示，checkpointMetaDataPath 表示 Checkpoint 的目录。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/flink run -s :checkpointMetaDataPath xxx.jar [:runArgs]</span><br></pre></td></tr></table></figure>
+
+<p>如果 flink on yarn 模式，启动命令如下所示：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/flink run -s :checkpointMetaDataPath -yid :yarnAppId xxx.jar [:runArgs]</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-1-获取-Checkpoint-目录"><a href="#5-1-获取-Checkpoint-目录" class="headerlink" title="5.1. 获取 Checkpoint 目录"></a>5.1. 获取 Checkpoint 目录</h3><p>Flink 自动维护 Checkpoint，所以用户在这里并拿不到任务取消之前最后一次 Checkpoint 的目录。如下图所示，在任务取消之前，Flink 任务的 WebUI 中可以看到 Checkpoint 的目录，可以在取消任务之前将此目录保存起来，恢复时就可以从该目录恢复任务。</p>
+<img src="/images/flink/000989.png" alt="截屏2021-05-24 上午10.32.24" style="zoom:50%;" />
+
+<p>上述方法最大缺陷就是用户的人力成本太高了，假如需要重启 100 个任务，需要用户手动维护 100 个任务的 Checkpoint 目录， 可以通过 rest api 来获取 Checkpoint 目录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;master.bigdata.dmp.local.com:35524&#x2F;jobs&#x2F;a1c70b36d19b3a9fc2713ba98cfc4a4f&#x2F;metrics?get&#x3D;lastCheckpointExternalPath</span><br></pre></td></tr></table></figure>
+
+<p>调用以上接口，即可返回 a1c70b36d19b3a9fc2713ba98cfc4a4f 对应的 job 最后一次 Checkpoint 的目录，返回格式如下所示。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;lastCheckpointExternalPath&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;value&quot;</span>: <span class="string">&quot;hdfs:/user/flink/checkpoints/a1c70b36d19b3a9fc2713ba98cfc4a4f/chk-18&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>通过这种方式可以方便地维护所有 Flink 任务的 Checkpoint 目录，当然也可以通过 Metrics 的 Reporter 将 Checkpoint 目录保存到外部存储介质中，当任务需要从 Checkpoint 处恢复时，则从外部存储中读取到相应的 Checkpoint 目录。</p>
+<p>当设置取消 Flink 任务保留外部的 Checkpoint 状态信息时，可能会带来的负面影响是：长期运行下去，hdfs 上将会保留很多废弃的且不再会使用的 Checkpoint 目录，所以如果开启了此配置，需要制定策略，定期清理那些不再会使用到的 Checkpoint 目录。</p>
+<h3 id="5-2-Savepoint-状态恢复"><a href="#5-2-Savepoint-状态恢复" class="headerlink" title="5.2. Savepoint 状态恢复"></a>5.2. Savepoint 状态恢复</h3><p>从 Savepoint 恢复任务的命令与 Checkpoint 恢复命令类似，savepointPath 表示 Savepoint 保存的目录，Savepoint 的各种触发方式都会返回 Savepoint 目录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin&#x2F;flink run -s :savepointPath xxx.jar [:runArgs]</span><br></pre></td></tr></table></figure>
+
+<p>如果 flink on yarn 模式，启动命令如下所示：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/flink run -s :savepointPath -yid :yarnAppId xxx.jar [:runArgs]</span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，恢复操作将尝试将 Savepoint 的所有状态映射到要还原的程序。如果删除了算子，则可以通过 <code>--allowNonRestoredState</code>（short：<code>-n</code>）选项跳过那些无法映射到新程序的状态：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin&#x2F;flink run -s :savepointPath -n xxx.jar [:runArgs]</span><br></pre></td></tr></table></figure>
+
+<p>Savepoint 目录里的状态快照信息，目前不支持移动位置，由于技术原因元数据文件中使用绝对路径来保存数据。如果因为某种原因必须要移动 Savepoint 文件，有两种方案来实现：</p>
+<ul>
+<li>使用编辑器修改 Savepoint 的元数据文件信息，将旧路径改为新路径</li>
+<li>可以使用 <code>SavepointV2Serializer</code> 类以编程方式读取、操作和重写元数据文件的新路径</li>
+</ul>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

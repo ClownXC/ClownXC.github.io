@@ -1,0 +1,370 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分类: 计算机网络 | 周晓晨</title><meta name="author" content="周晓晨"><meta name="copyright" content="周晓晨"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="description" content="HTTPS 是身披 SSL 外壳的 HTTP。HTTPS 是一种通过计算机网络进行安全通信的传输协议，经由 HTTP 进行通信，利用 SSL&#x2F;TLS 建立全信道，加密数据包。HTTPS 使用的主要目的是提供对网站服务器的身份认证，同时保护交换数据的隐私与完整性。TLS 使用非对称加密保护下的对称加密在保证了通信效率的同时防止窃听，使用证书体系防止信息篡改和身份冒认。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="https">
+<meta property="og:url" content="http://joccer.gitee.io/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/bak/Https.html">
+<meta property="og:site_name" content="周晓晨">
+<meta property="og:description" content="HTTPS 是身披 SSL 外壳的 HTTP。HTTPS 是一种通过计算机网络进行安全通信的传输协议，经由 HTTP 进行通信，利用 SSL&#x2F;TLS 建立全信道，加密数据包。HTTPS 使用的主要目的是提供对网站服务器的身份认证，同时保护交换数据的隐私与完整性。TLS 使用非对称加密保护下的对称加密在保证了通信效率的同时防止窃听，使用证书体系防止信息篡改和身份冒认。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2020-01-12T16:02:10.000Z">
+<meta property="article:modified_time" content="2021-05-24T09:08:35.399Z">
+<meta property="article:author" content="周晓晨">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://joccer.gitee.io/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/bak/Https"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":1,"position":"top","messagePrev":"这篇文章已经发表","messageNext":"天了，其中某些内容可能已经过时～"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  ClickShowText: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+  },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-05-24 17:08:35'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(function () {
+  window.activateDarkMode = function () {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+    }
+  }
+  window.activateLightMode = function () {
+    document.documentElement.setAttribute('data-theme', 'light')
+    if (document.querySelector('meta[name="theme-color"]') !== null) {
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+    }
+  }
+
+  const autoChangeMode = 'false'
+  const t = saveToLocal.get('theme')
+  if (autoChangeMode === '1') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+    const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode()
+      else if (isDarkMode) activateDarkMode()
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour <= 6 || hour >= 18
+        isNight ? activateDarkMode() : activateLightMode()
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+        if (saveToLocal.get('theme') === undefined) {
+          e.matches ? activateDarkMode() : activateLightMode()
+        }
+      })
+    } else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else if (autoChangeMode === '2') {
+    const now = new Date()
+    const hour = now.getHours()
+    const isNight = hour <= 6 || hour >= 18
+    if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+    else if (t === 'light') activateLightMode()
+    else activateDarkMode()
+  } else {
+    if (t === 'dark') activateDarkMode()
+    else if (t === 'light') activateLightMode()
+  }
+})()</script><link rel="stylesheet" href="/css/iconfont.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/chen.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div id="body-wrap"><header class="not-index-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">周晓晨</a></span><span id="menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 项目实战</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/playlist/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-folder-open"></i><span> 视频资料</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 数值分析</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 编译原理</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 操作系统</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机组成</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> 计算机网络</span></a></li><li><a class="site-page" href="/teach/jvm/"><i class="fa-fw fas fa-video"></i><span> JVM</span></a></li><li><a class="site-page" href="/teach/"><i class="fa-fw fas fa-video"></i><span> MySQL数据库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="page-site-info"><h1 id="site-title">https</h1></div></header><main class="layout_page" id="content-inner"><div id="page"><div id="article-container"><p>HTTPS 是身披 SSL 外壳的 HTTP。HTTPS 是一种通过计算机网络进行安全通信的传输协议，经由 HTTP 进行通信，利用 SSL/TLS 建立全信道，加密数据包。HTTPS 使用的主要目的是提供对网站服务器的身份认证，同时保护交换数据的隐私与完整性。<br>TLS 使用<strong>非对称加密保护下的对称加密</strong>在保证了通信效率的同时防止窃听，使用证书体系防止信息篡改和身份冒认。</p>
+<a id="more"></a>
+
+<h2 id="1-为什么需要-HTTPS"><a href="#1-为什么需要-HTTPS" class="headerlink" title="1. 为什么需要 HTTPS"></a>1. 为什么需要 <code>HTTPS</code></h2><p>在 HTTP 协议中有可能存在信息窃取或身份伪装等安全问题。使用 HTTPS 通信机制可以有效地防止这些问题，接下来，我们先来了解下 HTTP 协议存在的哪些问题？</p>
+<ol>
+<li><p><strong><font color='blue'>通信使用明文，不加密，内容可能被窃听</font></strong></p>
+<p>由于 HTTP 本身不具备加密的功能，所以也无法做到对通信整体进行加密。即，<strong>HTTP 报文使用明文（指未经过加密的报文）方式发送</strong>。</p>
+<p>HTTP 明文协议的缺陷是导致<strong>数据泄露、数据篡改、流量劫持、钓鱼攻击</strong>等安全问题的重要原因。HTTP 协议无法加密数据，所有通信数据都在网络中明文“裸奔”。通过网络的嗅探设备及一些技术手段，就可还原HTTP报文内容。</p>
+</li>
+</ol>
+<img src="/images/计算机网络/0089.png" alt="截屏2021-05-14 下午8.02.54" style="zoom:50%;" />
+
+
+
+<ol start="2">
+<li><strong><font color='blue'>无法证明报文的完整性，所以可能遭篡改</font></strong></li>
+</ol>
+<p>所谓完整性是指<strong>信息的准确度</strong>。若无法证明其完整性，通常也就意味着无法判断信息是否准确。由于 HTTP 协议无法证明通信的报文完整性，因此，在请求或响应送出之后直到对方接收之前的这段时间内，即使请求或响应的内容遭到篡改，也没有办法获悉。<br>换句话说，<strong>没有任何办法确认，发出的请求/响应和接收到的请求/响应是前后相同的</strong>。</p>
+<ol start="3">
+<li><strong><font color='blue'>不验证通信方的身份，因此有可能遭遇伪装</font></strong></li>
+</ol>
+<p><strong>HTTP 协议中的请求和响应不会对通信方进行确认</strong>。在 HTTP 协议通信时，由于不存在确认通信方的处理步骤，任何人都可以发起请求。另外，服务器只要接收到请求，不管对方是谁都会返回一个响应（但也仅限于发送端的IP地址和端口号没有被Web服务器设定限制访问的前提下）</p>
+<p>HTTP协议无法验证通信方身份，任何人都可以伪造虚假服务器欺骗用户，实现“钓鱼欺诈”，用户无法察觉。</p>
+<h2 id="2-HTTPS-如何解决-HTTP-上述问题"><a href="#2-HTTPS-如何解决-HTTP-上述问题" class="headerlink" title="2. HTTPS 如何解决 HTTP 上述问题?"></a>2. <code>HTTPS</code> 如何解决 <code>HTTP</code> 上述问题?</h2><p>HTTPS 并非是应用层的一种新协议。只是 HTTP 通信接口部分用 SSL 和 TLS 协议代替而已。</p>
+<p>通常，HTTP 直接和 TCP 通信。当使用 SSL 时，则演变成先和 SSL 通信，再由 SSL 和 TCP 通信了。简言之，<strong>所谓 HTTPS，其实就是身披 SSL 协议这层外壳的 HTTP</strong>。</p>
+<img src="/images/计算机网络/0080.png" alt="截屏2021-05-14 下午8.04.50" style="zoom:50%;" />
+
+<p>HTTPS 协议的主要功能基本都依赖于 TLS/SSL 协议，TLS/SSL 的功能实现主要依赖于三类基本算法：散列函数 、对称加密和非对称加密，<strong>其利用非对称加密实现身份认证和密钥协商，对称加密算法采用协商的密钥对数据加密，基于散列函数验证信息的完整性</strong>。</p>
+<h3 id="2-1-解决内容可能被窃听的问题——加密"><a href="#2-1-解决内容可能被窃听的问题——加密" class="headerlink" title="2.1. 解决内容可能被窃听的问题——加密"></a>2.1. <font color='blue'>解决内容可能被窃听的问题——加密</font></h3><h4 id="2-1-1-对称加密"><a href="#2-1-1-对称加密" class="headerlink" title="2.1.1. 对称加密"></a>2.1.1. 对称加密</h4><p><strong>加密和解密时使用的密钥都是同样的密钥</strong>。只要保证了密钥的安全性，那么整个通信过程也就是具有了机密性</p>
+<p>对称加密的加密方和解密方都使用同一个<code>密钥</code>，也就是说，加密方必须对原始数据进行加密，然后再把密钥交给解密方进行解密，然后才能解密数据，对称加密存在风险。</p>
+<h4 id="2-1-2-非对称加密"><a href="#2-1-2-非对称加密" class="headerlink" title="2.1.2. 非对称加密"></a>2.1.2. 非对称加密</h4><h5 id="非对称加密-Asymmetrical-Encryption-也被称为-公钥加密，相对于对称加密来说，非对称加密是一种新的改良加密方式。密钥通过网络传输交换，它能够确保及时密钥被拦截，也不会暴露数据信息。非对称加密中有两个密钥，一个是公钥，一个是私钥，公钥进行加密，私钥进行解密。公开密钥可供任何人使用，私钥只有自己能够知道。"><a href="#非对称加密-Asymmetrical-Encryption-也被称为-公钥加密，相对于对称加密来说，非对称加密是一种新的改良加密方式。密钥通过网络传输交换，它能够确保及时密钥被拦截，也不会暴露数据信息。非对称加密中有两个密钥，一个是公钥，一个是私钥，公钥进行加密，私钥进行解密。公开密钥可供任何人使用，私钥只有自己能够知道。" class="headerlink" title="非对称加密(Asymmetrical Encryption) 也被称为 公钥加密，相对于对称加密来说，非对称加密是一种新的改良加密方式。密钥通过网络传输交换，它能够确保及时密钥被拦截，也不会暴露数据信息。非对称加密中有两个密钥，一个是公钥，一个是私钥，公钥进行加密，私钥进行解密。公开密钥可供任何人使用，私钥只有自己能够知道。"></a><strong>非对称加密(Asymmetrical Encryption)</strong> 也被称为 <strong>公钥加密</strong>，相对于对称加密来说，非对称加密是一种新的改良加密方式。密钥通过网络传输交换，它能够确保及时密钥被拦截，也不会暴露数据信息。非对称加密中有两个密钥，一个是公钥，一个是私钥，公钥进行加密，私钥进行解密。公开密钥可供任何人使用，私钥只有自己能够知道。</h5><p>使用公钥加密的文本只能使用私钥解密，同时，使用私钥加密的文本也可以使用公钥解密。公钥不需要具有安全性，因为公钥需要在网络间进行传输，非对称加密可以解决<code>密钥交换</code>的问题。网站保管私钥，在网上任意分发公钥，密文只能由私钥持有者才能解密。没有私钥，就无法破解密文。</p>
+<h4 id="2-1-3-对称加密-非对称加密-HTTPS-采用这种方式"><a href="#2-1-3-对称加密-非对称加密-HTTPS-采用这种方式" class="headerlink" title="2.1.3. 对称加密+非对称加密 (HTTPS 采用这种方式)"></a>2.1.3. 对称加密+非对称加密 (HTTPS 采用这种方式)</h4><p>使用对称密钥的好处是解密的效率比较快，使用非对称密钥的好处是可以使得传输的内容不能被破解，因为就算你拦截到了数据，但是没有对应的私钥，也是不能破解内容的。就将对称加密与非对称加密结合起来,充分利用两者各自的优势，<strong>在交换密钥环节使用非对称加密方式，之后的建立通信交换报文阶段则使用对称加密方式</strong>。具体做法是：<strong>发送密文的一方使用对方的公钥进行加密处理“对称的密钥”，然后对方用自己的私钥解密拿到“对称的密钥”，这样可以确保交换的密钥是安全的前提下，使用对称加密方式进行通信</strong>。所以，HTTPS 采用对称加密和非对称加密两者并用的混合加密机制。</p>
+   <img src="/images/计算机网络/094034.png" alt="截屏2021-05-14 下午8.21.31" style="zoom:35%;" />
+
+<h3 id="2-2-解决报文的完整性——摘要算法"><a href="#2-2-解决报文的完整性——摘要算法" class="headerlink" title="2.2. 解决报文的完整性——摘要算法"></a>2.2. <font color='blue'>解决报文的完整性——摘要算法</font></h3><p>实现完整性的手段主要是 <code>摘要算法(Digest Algorithm)</code></p>
+<p>摘要算法理解成一种特殊的压缩算法，它能够把任意长度的数据<code>压缩</code>成一种固定长度的字符串，这就好像是给数据加了一把锁</p>
+<p>除了常用的 MD5 是加密算法外，<code>SHA-1(Secure Hash Algorithm 1)</code> 也是一种常用的加密算法，不过 SHA-1 也是不安全的加密算法，在 TLS 里面被禁止使用。目前 TLS 推荐使用的是 SHA-1 的后继者：<code>SHA-2</code>。</p>
+<p>MD5 的全称是 <code>Message Digest Algorithm 5</code>，它是属于<code>密码哈希算法(cryptographic hash algorithm)</code>的一种，MD5 可用于从任意长度的字符串创建 128 位字符串值。尽管 MD5 存在不安全因素，但是仍然沿用至今。MD5 最常用于<code>验证文件</code>的完整性。但是，它还用于其他安全协议和应用程序中，例如 SSH、SSL 和 IPSec。一些应用程序通过向明文加盐值或多次应用哈希函数来增强 MD5 算法</p>
+<p>SHA-2 的全称是<code>Secure Hash Algorithm 2</code> , SHA-2 系列包含六个哈希函数，其摘要(哈希值) 分别为 224、256、384 或 512 位: <strong>SHA-224, SHA-256, SHA-384, SHA-512</strong>。分别能够生成 28 字节、32 字节、48 字节、64 字节的摘要。</p>
+<p>SHA-2 能够实现数据的完整性，哪怕在文件中改变一个标点符号，增加一个空格，生成的文件摘要也会完全不同，不过 SHA-2 是基于明文的加密方式，还是不够安全</p>
+<p>安全性更高的加密方式是使用 <code>HMAC</code></p>
+<p>MAC 的全称是 <code>message authentication code</code>，它通过 MAC 算法从消息和密钥生成，MAC 值允许验证者（也拥有秘密密钥）检测到消息内容的任何更改，从而保护了消息的数据完整性。</p>
+<p>HMAC 是 MAC 更进一步的拓展，它是使用 MAC 值 + Hash 值的组合方式，HMAC 的计算中可以使用任何加密哈希函数，例如 SHA-256 等。</p>
+<h3 id="2-3-解决通信方身份可能被伪装的问题——数字证书"><a href="#2-3-解决通信方身份可能被伪装的问题——数字证书" class="headerlink" title="2.3. 解决通信方身份可能被伪装的问题——数字证书"></a>2.3. <font color='blue'>解决通信方身份可能被伪装的问题——数字证书</font></h3><p>私钥加密，公钥解密。使用私钥再加上摘要算法，就能够实现<code>数字签名</code>，从而实现认证。</p>
+<p>CA 的全称是 <code>Certificate Authority</code>，证书认证机构，CA 颁布具有认证过的公钥，才能解决公钥的信任问题。</p>
+<h4 id="2-3-1-数字证书认证机构的业务流程"><a href="#2-3-1-数字证书认证机构的业务流程" class="headerlink" title="2.3.1. 数字证书认证机构的业务流程"></a>2.3.1. <strong>数字证书认证机构的业务流程</strong></h4><ol>
+<li><p>服务器的运营人员向第三方机构 CA 提交公钥、组织信息、个人信息(域名)等信息并申请认证</p>
+</li>
+<li><p>CA 通过线上、线下等多种手段验证申请者提供信息的真实性，如组织是否存在、企业是否合法，是否拥有域名的所有权等</p>
+</li>
+<li><p>如信息审核通过，CA 会向申请者签发认证文件-证书。</p>
+<p>证书包含以下信息：申请者公钥、申请者的组织信息和个人信息、签发机构 CA 的信息、有效时间、证书序列号等信息的明文，同时包含一个签名。 </p>
+<p>其中签名的产生算法：首先，使用散列函数计算公开的明文信息的信息摘要，然后，采用 CA 的私钥对信息摘要进行加密，密文即签名</p>
+</li>
+<li><p>客户端 Client 向服务器 Server 发出请求时，Server 返回证书文件;</p>
+</li>
+<li><p>客户端 Client 读取证书中的相关的明文信息，采用相同的散列函数计算得到信息摘要，然后，利用对应 CA 的公钥解密签名数据，对比证书的信息摘要，如果一致，则可以确认证书的合法性，即服务器的公开密钥是值得信赖的。</p>
+</li>
+<li><p>客户端还会验证证书相关的域名信息、有效时间等信息; 客户端会内置信任 CA 的证书信息(包含公钥)，如果CA 不被信任，则找不到对应 CA 的证书，证书也会被判定非法。</p>
+</li>
+</ol>
+<h2 id="3-HTTPS-传输过程"><a href="#3-HTTPS-传输过程" class="headerlink" title="3. HTTPS 传输过程"></a><strong>3. HTTPS 传输过程</strong></h2><p><strong><font color='blue' size='4'>HTTPS 在传输的过程中会涉及到三个密钥</font></strong></p>
+<ol>
+<li>服务器端的公钥和私钥，用来进行非对称加密</li>
+<li>客户端生成的随机密钥，用来进行对称加密</li>
+</ol>
+<p><strong>流程</strong></p>
+<ol>
+<li><p><strong>客户端浏览器发送信息到服务器，包括随机数 R1、支持的加密算法类型、协议版本、压缩算法等。注意该过程为明文</strong></p>
+<ul>
+<li><p>支持的协议版本，比如 <code>TLS 1.0</code> 版</p>
+</li>
+<li><p>一个客户端生成的随机数<code>R1</code>，稍后用于生成”对话密钥”</p>
+</li>
+<li><p>支持的加密方法，比如 <code>RSA</code> 公钥加密</p>
+</li>
+<li><p>支持的压缩方法</p>
+</li>
+</ul>
+</li>
+<li><p><strong>服务端返回信息，包括随机数R2、选定加密算法类型、协议版本以及服务器证书。注意该过程为明文。</strong></p>
+<ul>
+<li>确认使用的加密通信协议版本，比如 <code>TLS 1.0</code> 版本。如果浏览器与服务器支持的版本不一致，服务器关闭加密通信</li>
+<li>一个服务器生成的随机数，稍后用于生成”对话密钥” <code>R2</code></li>
+<li>确认使用的加密方法，比如 <code>RSA</code> 公钥加密，此时带有公钥信息</li>
+<li>服务器证书</li>
+</ul>
+</li>
+<li><p>客户端收到服务器端的服务器证书之后，会对服务器证书进行检查，验证其合法性，该证书需要由第三方 <code>CA</code> 来签发，浏览器和操作系统会预置权威 <code>CA</code> 的根证书。如果证书被篡改作假[中间人攻击]，很容易通过 <code>CA</code> 的证书验证出来。如果发现发现公钥有问题，那么 <code>HTTPS</code> 传输就无法继续。严格的说，这里应该是验证服务器发送的数字证书的合法性。</p>
+<ul>
+<li><p>验证证书的合法性</p>
+</li>
+<li><p>如果证书受信任，一个随机数 <code>pre-master key</code>。该随机数用服务器公钥加密，防止被窃听。</p>
+</li>
+<li><p>使用约定好的 HASH 计算握手消息</p>
+<ul>
+<li>非对称加密算法：RSA，DSA/DSS，用于在握手过程中加密生成的密码。</li>
+<li>对称加密算法：AES，RC4，3DES，用于对真正传输的数据进行加密。</li>
+<li>HASH算法：MD5，SHA1，SHA256，验证数据的完整性。</li>
+</ul>
+</li>
+<li><p>使用生成的随机数对消息进行加密，最后将之前生成的所有信息发送给网站。</p>
+</li>
+</ul>
+<p>如果证书没问题，则客户端用服务端证书中的公钥加密随机数 <code>R3</code>（又叫Pre-MasterSecret），发送给服务器。此时，只有客户端和服务器都拥有 <code>R1</code>、<code>R2</code> 和 <code>R3</code> 信息，基于随机数 <code>R1</code>、<code>R2</code> 和 <code>R3</code>，双方通过伪随机数函数来生成共同的对称会话密钥 <code>MasterSecret</code>。</p>
+</li>
+<li><p>网站接收浏览器发来的数据之后要做以下的操作</p>
+<ul>
+<li><p>使用自己的私钥将信息解密取出密码</p>
+</li>
+<li><p>使用密码解密浏览器发来的握手消息，并验证 HASH 是否与浏览器发来的一致。</p>
+</li>
+<li><p>使用密码加密一段握手消息，发送给浏览器</p>
+</li>
+</ul>
+</li>
+<li><p>浏览器解密并计算握手消息的 HASH，如果与服务端发来的 HASH一致，此时握手结束。</p>
+</li>
+<li><p>使用随机密码和对称加密算法对传输的数据加密，传输。</p>
+</li>
+</ol>
+<p><strong><font color='blue' size='4'>客户端在接受到服务端发来的 SSL 证书时，会对证书的真伪进行校验，以浏览器为例说明如下</font></strong></p>
+<ol>
+<li>首先浏览器读取证书中的证书所有者、有效期等信息进行一一校验</li>
+<li>浏览器开始查找操作系统中已内置的受信任的证书发布机构 CA，与服务器发来的证书中的颁发者CA比对，用于校验证书是否为合法机构颁发</li>
+<li>如果找不到，浏览器就会报错，说明服务器发来的证书是不可信任的。</li>
+<li>如果找到，那么浏览器就会从操作系统中取出 颁发者CA 的公钥，然后对服务器发来的证书里面的签名进行解密</li>
+<li>浏览器使用相同的 hash 算法计算出服务器发来的证书的 hash 值，将这个计算的 hash 值与证书中签名做对比</li>
+<li>对比结果一致，则证明服务器发来的证书合法，没有被冒充</li>
+<li>此时浏览器就可以读取证书中的公钥，用于后续加密了</li>
+</ol>
+<h2 id="HTTP-与-HTTPS-的区别"><a href="#HTTP-与-HTTPS-的区别" class="headerlink" title="HTTP 与 HTTPS 的区别"></a><code>HTTP</code> 与 <code>HTTPS</code> 的区别</h2><ol>
+<li>HTTP 是明文传输协议，HTTPS 协议是由 SSL+HTTP 协议构建的可进行加密传输、身份认证的网络协议，比 HTTP 协议安全。</li>
+<li>https 协议需要到 CA 申请证书，一般免费证书较少，因而需要一定费用。</li>
+<li>http 和 https 使用的是完全不同的连接方式，用的端口也不一样，前者是 80，后者是 443。</li>
+<li>http的连接很简单，是无状态的；HTTPS 协议是由 SSL/TLS+HTTP 协议构建的可进行加密传输、身份认证的网络协议，比 http 协议安全。</li>
+</ol>
+<h2 id="如何优化-HTTPS-的速度"><a href="#如何优化-HTTPS-的速度" class="headerlink" title="如何优化 HTTPS 的速度"></a>如何优化 <code>HTTPS</code> 的速度</h2><ol>
+<li><p><strong><font color='blue' size='4'>HSTS 重定向技术</font></strong></p>
+<p>HSTS（HTTP Strict Transport Security）技术，启用HSTS后，将保证浏览器始终连接到网站的 HTTPS 加密版本。</p>
+<ul>
+<li><p>用户在浏览器里输入 HTTP 协议进行访问时，浏览器会自动将 HTTP 转换为 HTTPS 进行访问，确保用户访问安全；</p>
+</li>
+<li><p>省去301跳转的出现，缩短访问时间；</p>
+</li>
+<li><p>能阻止基于 SSL Strip 的中间人攻击，万一证书有错误，则显示错误，用户不能回避警告，从而能够更加有效安全的保障用户的访问。</p>
+</li>
+</ul>
+</li>
+<li><p><strong><font color='blue' size='4'>TLS 握手优化</font></strong></p>
+</li>
+</ol>
+<ol start="3">
+<li><p><strong><font color='blue' size='4'>Session Identifier（会话标识符）复用</font></strong></p>
+</li>
+<li><p><strong><font color='blue' size='4'>开启OSCP Stapling，提高TLS握手效率</font></strong></p>
+</li>
+<li><p><strong><font color='blue' size='4'>完全前向加密PFS，保护用户数据，预防私钥泄漏</font></strong></p>
+</li>
+</ol>
+<h2 id="HTTPS-涉及的计算环节"><a href="#HTTPS-涉及的计算环节" class="headerlink" title="HTTPS 涉及的计算环节"></a><strong>HTTPS</strong> 涉及的计算环节</h2><ol>
+<li><strong>非对称密钥交换</strong>。比如 <code>RSA</code>, <code>Diffie-Hellman</code>, <code>ECDHE</code>.这类算法的主要作用就是根据客户端和服务端不对称的信息，经过高强度的密钥生成算法，生成对称密钥，用于加解密后续应用消息。</li>
+<li><strong>对称加解密</strong>。服务端使用密钥 A 对响应内容进行加密，客户端使用相同的密钥A对加密内容进行解密，反之亦然。</li>
+<li><strong>消息一致性验证</strong>。每一段加密的内容都会附加一个 MAC 消息，即消息认证码。简单地说就是对内容进行的安全哈希计算，接收方需要校验 MAC 码。</li>
+<li><strong>证书签名校验</strong>。这个阶段主要发生在客户端校验服务端证书身份时，需要对证书签名进行校验，确保证书的真实性。</li>
+</ol>
+<h2 id="为何不所有的网站都使用-HTTPS-？"><a href="#为何不所有的网站都使用-HTTPS-？" class="headerlink" title="为何不所有的网站都使用 HTTPS ？"></a>为何不所有的网站都使用 <code>HTTPS</code> ？</h2><ol>
+<li>Https 协议握手阶段比较费时，会使页面的加载时间延长。</li>
+<li>Https 连接缓存不如 Http 高效，会增加数据开销，甚至已有的安全措施也会因此而受到影响；</li>
+<li>SSL 证书通常需要绑定 IP，不能在同一IP上绑定多个域名，IPv4资源不可能支撑这个消耗。</li>
+<li>Https 协议的加密范围也比较有限。最关键的，SSL 证书的信用链体系并不安全，特别是在某些国家可以控制CA根证书的情况下，中间人攻击一样可行。</li>
+</ol>
+</div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/chen.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">周晓晨</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length_num">154</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length_num">10</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length_num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ClownXC"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/ClownXC" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/313298443" target="_blank" title=""><i class="iconfont icon-bilibili"></i></a><a class="social-icon" href="https://leetcode-cn.com/u/shi-xiao-chou-ya/" target="_blank" title="Leetcode"><i class="iconfont icon-leetcode"></i></a><a class="social-icon" href="https://www.douban.com/" target="_blank" title="Douban"><i class="iconfont icon-douban"></i></a><a class="social-icon" href="https://www.csdn.net/" target="_blank" title="csdn"><i class="iconfont icon-csdn"></i></a></div></div></div><div class="sticky_layout"><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">编译原理课程已经在 bilbil 更新啦！！！大家要三连支持呀<img src="https://cdn.jsdelivr.net/gh/lete114/CDN/Use/my_bg.gif"></div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/04/02/Innodb%20%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="InnoDB 表空间">InnoDB 表空间</a><time datetime="2021-04-02T15:15:22.000Z" title="发表于 2021-04-02 23:15:22">2021-04-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/15/HADOOP-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86_FsVolumeImpl/" title="文件系统数据集_FsVolumeImpl实现">文件系统数据集_FsVolumeImpl实现</a><time datetime="2021-03-14T17:12:21.000Z" title="发表于 2021-03-15 01:12:21">2021-03-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/03/InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="InnoDB 的 Buffer Pool">InnoDB 的 Buffer Pool</a><time datetime="2021-03-03T15:36:57.000Z" title="发表于 2021-03-03 23:36:57">2021-03-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/15/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F-Kafka_%E5%89%AF%E6%9C%AC%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97_AbstractFetcherThread/" title="消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread">消息系统-Kafka：Kafka副本管理模块_AbstractFetcherThread</a><time datetime="2021-01-15T04:15:32.000Z" title="发表于 2021-01-15 12:15:32">2021-01-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/01/07/Redis-6.0%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/" title="Redis 6.0 新特性">Redis 6.0 新特性</a><time datetime="2021-01-06T17:20:09.000Z" title="发表于 2021-01-07 01:20:09">2021-01-07</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudera/"><span class="card-category-list-name">Cloudera</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Flink/"><span class="card-category-list-name">Flink</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/HBase/"><span class="card-category-list-name">HBase</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Hadoop/"><span class="card-category-list-name">Hadoop</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">17</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Kafka/"><span class="card-category-list-name">Kafka</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/MySQL/"><span class="card-category-list-name">MySQL</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Redis/"><span class="card-category-list-name">Redis</span><span class="card-category-list-count">15</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/categories/">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Kafka-%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" style="font-size: 1.5em; color: rgb(0, 151, 115)">Kafka 消息系统源码深度剖析</a><a href="/tags/HBase/" style="font-size: 1.3em; color: rgb(81, 151, 46)">HBase</a><a href="/tags/Hadoop/" style="font-size: 1.17em; color: rgb(110, 94, 83)">Hadoop</a><a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.37em; color: rgb(80, 173, 52)">计算机网络</a><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.3em; color: rgb(53, 169, 16)">数据库</a><a href="/tags/Redis/" style="font-size: 1.1em; color: rgb(200, 62, 7)">Redis</a><a href="/tags/Scilab-%E4%BB%BF%E7%9C%9F%E4%BA%91%E5%8C%96%E6%94%B9%E9%80%A0/" style="font-size: 1.23em; color: rgb(170, 179, 200)">Scilab 仿真云化改造</a><a href="/tags/%E6%BB%B4%E6%BB%B4%E6%99%BA%E6%85%A7%E5%87%BA%E8%A1%8C/" style="font-size: 1.43em; color: rgb(60, 154, 141)">滴滴智慧出行</a><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.17em; color: rgb(4, 36, 192)">设计模式</a><a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 1.1em; color: rgb(156, 191, 182)">大数据</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/12/"><span class="card-archive-list-date">十二月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/05/"><span class="card-archive-list-date">五月 2020</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2020/03/"><span class="card-archive-list-date">三月 2020</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item more is-center"><a class="card-archive-list-link-more" href="/archives/">
+              <span>查看更多</span><i class="fas fa-angle-right"  ></i></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">154</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">301k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2021-05-25T01:14:51.652Z"></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2021 By 周晓晨</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> {preloader.endLoading()})</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const initData = {
+      el: '#vcomment',
+      appId: 'os3tR4qQtIEkoK1S8XDHyBwY-gzGzoHsz',
+      appKey: 'obbNIfixVI0uj7WoAqKy0hUv',
+      placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+      avatar: 'monsterid',
+      meta: 'nick,mail'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else $.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js', initValine)
+}
+
+if ('Valine' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.querySelector('#vcomment'),loadValine)
+  else setTimeout(() => loadValine(), 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
